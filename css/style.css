@@ -191,6 +191,7 @@ li{
     font-size: 14px;
     cursor: default;
     transition: 0.25s ease;
+    text-decoration: none;
 }
 li:hover{
     background: var(--accent);
