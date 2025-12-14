@@ -224,6 +224,7 @@ li:hover{
 .project-list{
     display: grid;
     gap: 24px;
+    padding: 20px;
 }
 
 .project-card{
@@ -253,7 +254,14 @@ p, li {
     font-family: 'Inter', system-ui, sans-serif;
 }
 
-
+.game, .game-p{
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+    text-decoration: none;
+    color: var(--color);
+    transition: 0.3s ease;
+}
 @media(prefers-reduced-motion: reduce){
     *{
         transition: none;
