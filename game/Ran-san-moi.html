@@ -61,6 +61,12 @@
       border-radius: 10px;
       display: none;
     }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;      /* khóa scroll */
+      touch-action: none;    /* tắt gesture mặc định */
+    }
   </style>
 </head>
 <body>
@@ -81,7 +87,7 @@
   </div>
 
 <script>
-/* ================== SETUP ================== */
+/* ================= SETUP ================= */
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -91,10 +97,10 @@ const toggleMazeBtn = document.getElementById("toggleMazeBtn");
 const modeToggleBtn = document.getElementById("modeToggleBtn");
 const message = document.getElementById("message");
 
-let tileCount = 20;
-let gridSize = 20;
+const tileCount = 20;
+let gridSize;
 
-/* ================== RESIZE ================== */
+/* ================= RESIZE ================= */
 function resizeCanvas() {
   const size = Math.min(window.innerWidth, window.innerHeight) - 40;
   canvas.width = size;
@@ -104,20 +110,18 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-/* ================== GAME STATE ================== */
-let snake = [];
-let direction = { x: 0, y: 0 };
-let food = {};
+/* ================= GAME STATE ================= */
+let snake, direction, food;
 let score = 0;
 let gameInterval;
 let gameStarted = false;
 
-let snakeColor = "#00ff88";
+let snakeColor = "#0f0";
 let randomColorEnabled = false;
 let mazeMode = false;
 let wallMode = false;
 
-/* ================== MAZE ================== */
+/* ================= MAZE ================= */
 const mazeWalls = [
   ...Array.from({ length: 18 }, (_, i) => ({ x: i + 1, y: 1 })),
   ...Array.from({ length: 18 }, (_, i) => ({ x: i + 1, y: 18 })),
@@ -129,9 +133,13 @@ const mazeWalls = [
   ...Array.from({ length: 6 }, (_, i) => ({ x: i + 6, y: 13 }))
 ];
 
-/* ================== UTILS ================== */
+/* ================= UTILS ================= */
 function getRandomColor() {
   return "#" + Math.floor(Math.random() * 16777215).toString(16);
+}
+
+function isOppositeDirection(newDir) {
+  return direction.x + newDir.x === 0 && direction.y + newDir.y === 0;
 }
 
 function drawRoundedRect(x, y, w, h, r) {
@@ -149,7 +157,7 @@ function drawRoundedRect(x, y, w, h, r) {
   ctx.fill();
 }
 
-/* ================== DRAW ================== */
+/* ================= DRAW ================= */
 function drawSnake() {
   snake.forEach((p, i) => {
     const x = p.x * gridSize + 1;
@@ -165,7 +173,7 @@ function drawSnake() {
 }
 
 function drawFood() {
-  ctx.fillStyle = "#ff4444";
+  ctx.fillStyle = "#f44";
   ctx.beginPath();
   ctx.arc(
     food.x * gridSize + gridSize / 2,
@@ -178,18 +186,18 @@ function drawFood() {
 }
 
 function drawMaze() {
-  ctx.fillStyle = "#00cccc";
-  mazeWalls.forEach(w => {
+  ctx.fillStyle = "#0cc";
+  mazeWalls.forEach(w =>
     ctx.fillRect(
       w.x * gridSize + 2,
       w.y * gridSize + 2,
       gridSize - 4,
       gridSize - 4
-    );
-  });
+    )
+  );
 }
 
-/* ================== GAME LOGIC ================== */
+/* ================= GAME LOGIC ================= */
 function moveSnake() {
   if (!gameStarted) return;
 
@@ -206,8 +214,10 @@ function moveSnake() {
 
   const head = { x: nx, y: ny };
 
-  if (snake.slice(1).some(s => s.x === head.x && s.y === head.y))
-    return gameOver();
+  if (
+    snake.length >= 5 &&
+    snake.slice(1).some(s => s.x === head.x && s.y === head.y)
+  ) return gameOver();
 
   if (mazeMode && mazeWalls.some(w => w.x === head.x && w.y === head.y))
     return gameOver();
@@ -222,22 +232,25 @@ function moveSnake() {
   }
 }
 
+/* ===== SPAWN FOOD (KHÔNG LỖI) ===== */
 function spawnFood() {
-  do {
-    food = {
-      x: Math.floor(Math.random() * tileCount),
-      y: Math.floor(Math.random() * tileCount)
-    };
-  } while (
-    snake.some(p => p.x === food.x && p.y === food.y) ||
-    (mazeMode && mazeWalls.some(w => w.x === food.x && w.y === food.y))
-  );
+  let valid = false;
+  while (!valid) {
+    const x = Math.floor(Math.random() * tileCount);
+    const y = Math.floor(Math.random() * tileCount);
+
+    if (x <= 0 || y <= 0 || x >= tileCount - 1 || y >= tileCount - 1) continue;
+    if (snake.some(p => p.x === x && p.y === y)) continue;
+    if (mazeMode && mazeWalls.some(w => w.x === x && w.y === y)) continue;
+
+    food = { x, y };
+    valid = true;
+  }
 }
 
 function draw() {
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   if (mazeMode) drawMaze();
   moveSnake();
   drawSnake();
@@ -249,7 +262,7 @@ function gameOver() {
   alert("🪦 Game Over! Điểm: " + score);
 }
 
-/* ================== INPUT ================== */
+/* ================= INPUT ================= */
 document.addEventListener("keydown", e => {
   const map = {
     ArrowUp:{x:0,y:-1}, w:{x:0,y:-1},
@@ -257,30 +270,51 @@ document.addEventListener("keydown", e => {
     ArrowLeft:{x:-1,y:0}, a:{x:-1,y:0},
     ArrowRight:{x:1,y:0}, d:{x:1,y:0}
   };
-  if (map[e.key]) {
-    direction = map[e.key];
-    gameStarted = true;
-    message.style.display = "none";
-  }
-});
+  const newDir = map[e.key];
+  if (!newDir || isOppositeDirection(newDir)) return;
 
-/* Swipe mobile */
-let sx = 0, sy = 0;
-canvas.addEventListener("touchstart", e => {
-  sx = e.touches[0].clientX;
-  sy = e.touches[0].clientY;
-});
-canvas.addEventListener("touchend", e => {
-  const dx = e.changedTouches[0].clientX - sx;
-  const dy = e.changedTouches[0].clientY - sy;
-  direction = Math.abs(dx) > Math.abs(dy)
-    ? (dx > 0 ? {x:1,y:0} : {x:-1,y:0})
-    : (dy > 0 ? {x:0,y:1} : {x:0,y:-1});
+  direction = newDir;
   gameStarted = true;
   message.style.display = "none";
 });
 
-/* ================== CONTROLS ================== */
+/* ===== MOBILE SWIPE (FIX SCROLL) ===== */
+let sx = 0, sy = 0;
+canvas.addEventListener("touchstart", e => {
+  e.preventDefault();
+  sx = e.touches[0].clientX;
+  sy = e.touches[0].clientY;
+}, { passive: false });
+
+canvas.addEventListener("touchend", e => {
+  e.preventDefault();
+  const dx = e.changedTouches[0].clientX - sx;
+  const dy = e.changedTouches[0].clientY - sy;
+
+  let newDir =
+    Math.abs(dx) > Math.abs(dy)
+      ? (dx > 0 ? {x:1,y:0} : {x:-1,y:0})
+      : (dy > 0 ? {x:0,y:1} : {x:0,y:-1});
+
+  if (!isOppositeDirection(newDir)) direction = newDir;
+  gameStarted = true;
+  message.style.display = "none";
+}, { passive: false });
+
+/* ================= BUTTONS ================= */
+startBtn.onclick = startGame;
+toggleColorBtn.onclick = () => randomColorEnabled = !randomColorEnabled;
+toggleMazeBtn.onclick = () => mazeMode = !mazeMode;
+modeToggleBtn.onclick = () => wallMode = !wallMode;
+
+document.querySelectorAll(".skinBtn").forEach(btn => {
+  btn.onclick = () => {
+    snakeColor = btn.dataset.color;
+    randomColorEnabled = false;
+  };
+});
+
+/* ================= START ================= */
 function startGame() {
   clearInterval(gameInterval);
   snake = [{ x: 10, y: 10 }];
@@ -292,12 +326,6 @@ function startGame() {
   gameInterval = setInterval(draw, 120);
 }
 
-startBtn.onclick = startGame;
-toggleColorBtn.onclick = () => randomColorEnabled = !randomColorEnabled;
-toggleMazeBtn.onclick = () => mazeMode = !mazeMode;
-modeToggleBtn.onclick = () => wallMode = !wallMode;
-
-/* ================== START ================== */
 startGame();
 </script>
 
