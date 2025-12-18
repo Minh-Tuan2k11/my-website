@@ -47,40 +47,52 @@ document.querySelectorAll('.skill-item').forEach(item => {
 
 // hiệu ứng lướt các mục
 document.addEventListener('DOMContentLoaded', () => {
-    const elements = document.querySelectorAll('[data-reveal]');
+  const elements = document.querySelectorAll('[data-reveal]');
 
-    const observer = new IntersectionObserver(
-        entries => {
-        entries.forEach(entry => {
-            const el = entry.target;
-            const ratio = entry.intersectionRatio;
+  if (elements.length > 0) {
+    elements[0].classList.add('active');
+    elements[0].dataset.state = 'active';
+  }
 
-            // RÕ NÉT NHẤT
-            if (ratio >= 0.65) {
-            el.classList.add('active');
-            el.classList.remove('fade');
-            }
+  const T = { hide: 0.15, fade: 0.25, active: 0.65 };
 
-            // MỜ NHẸ
-            else if (ratio >= 0.25 && ratio < 0.65) {
-            el.classList.add('fade');
-            el.classList.remove('active');
-            }
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        const el = entry.target;
+        const ratio = entry.intersectionRatio;
+        const state = el.dataset.state || 'hidden';
 
-            // NGOÀI VIEWPORT → ẨN
-            else if (ratio < 0.15) {
-            el.classList.remove('active', 'fade');
-            }
-            // vùng đệm 0.15 → 0.25: KHÔNG LÀM GÌ
-        });
-        },
-        {
-        threshold: [0.15, 0.25, 0.65]
+        if (state === 'hidden' && ratio >= T.fade) {
+          el.dataset.state = 'fade';
+          el.classList.add('fade');
+        } 
+        else if (state === 'fade' && ratio >= T.active) {
+          el.dataset.state = 'active';
+          el.classList.add('active');
+          el.classList.remove('fade');
+        } 
+        else if (state === 'active' && ratio < T.fade) {
+          el.dataset.state = 'fade';
+          el.classList.remove('active');
+          el.classList.add('fade');
+        } 
+        else if (state === 'fade' && ratio < T.hide) {
+          el.dataset.state = 'hidden';
+          el.classList.remove('fade');
         }
-    );
+      });
+    },
+    { threshold: [T.hide, T.fade, T.active] }
+  );
 
-    elements.forEach(el => observer.observe(el));
+  elements.forEach(el => observer.observe(el));
 });
+const observer = new IntersectionObserver(callback, {
+  threshold: [T.hide, T.fade, T.active],
+  rootMargin: '-20% 0px'
+});
+
 
 document.querySelector('.logo').addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
