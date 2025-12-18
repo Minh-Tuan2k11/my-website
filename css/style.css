@@ -8,6 +8,7 @@
     --li-bg-hover: #dbeafe;     /* xanh nhạt */
     --li-color: #1e3a8a;
     --accent: #3b82f6;          /* XANH DƯƠNG NHẤN */
+    --new-color: #06b6d4;       /*màu xanh ngọc*/
 }
 
 body{
@@ -43,6 +44,7 @@ body.dark {
     --li-color:#fff;
     --color-btn: #e5e7eb;
     --accent: #60a5fa;          /* xanh sáng hơn */
+    --new-color:#38d9e9;
 }
 
 .site-header{
@@ -239,7 +241,7 @@ li:hover{
     max-width: 700px;
     margin: auto;
     text-align: center;
-    padding: 100px 0;
+    padding: 150px 0;
 }
 
 .project-list{
@@ -360,4 +362,36 @@ p, li {
 [data-reveal].active {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* new */
+.badge{
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 6px;
+    font-weight: 600;
+    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.badge.new{
+    background: var(--new-color);
+    color: #fff;
+}
+
+section {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0,0,0,0.02)
+  );
+}
+section h2 {
+  margin-bottom: 24px;
+}
+
+section p {
+  margin-bottom: 16px;
 }
