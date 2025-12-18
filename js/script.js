@@ -36,3 +36,10 @@ window.addEventListener('resize',()=>{
         overlay.classList.remove('active');
     }
 });
+
+// mô tả dự án
+document.querySelectorAll('.skill-item').forEach(item => {
+  item.addEventListener('click', () => {
+    item.classList.toggle('active');
+  });
+});
