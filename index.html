@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang cá nhân của tôi</title>
+    <title>my-website</title>
     <link rel="stylesheet" href="./css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,9 @@
 <body>
     <header class="site-header">
         <div class="header-inner">
-            <h1 class="logo">Tuấn</h1>
+            <div class="logo-wrap">
+                <h1 class="logo">Tuấn</h1>
+            </div>
             <button class="menu-btn">☰</button>
         
         
@@ -25,12 +27,12 @@
             </nav>
         </div>
     </header>
-    <section class="hero">
+    <section class="hero" data-reveal>
         <h1>Xin chào, tôi là Tuấn</h1>
         <p>Tôi đang học thiết kế & lập trình web</p>
     </section>
 
-    <section id="about" class="about">
+    <section id="about" class="about" data-reveal>
         <h2>Giới thiệu</h2>
         <p>Tôi đang xây dựng website cá nhân để học và chia sẻ quá trình học web.</p>
     </section>
@@ -38,7 +40,7 @@
     <section id="skills-section" class="skills-section">
         <h2 class="name-skills-section">Kỹ năng & sở thích</h2>
         <div class="wrapper">
-            <div class="skills">
+            <div class="skills"data-reveal>
                 <h2>Kỹ năng</h2>
                 <ul>
                     <li>HTML, CSS cơ bản</li>
@@ -48,7 +50,7 @@
                 </ul>
             </div>
 
-            <div class="hobbies">
+            <div class="hobbies"data-reveal>
                 <h2>Sở thích</h2>
                 <ul>
                     <li>Thiết kế website</li>
@@ -62,7 +64,7 @@
     <section id="projects" class="projects">
         <h2 class="name-projects">Dự án</h2>
 
-        <div class="project-list">
+        <div class="project-list" data-reveal>
             <article class="project-card">
                 <h3>Webstite cá nhân</h3>
                 <p>
@@ -88,7 +90,7 @@
                     </ul>
             </article>
         </div>
-        <div class="project-list">
+        <div class="project-list" data-reveal>
             <article class="project-card">
                 <h3>trò chơi cá nhân</h3>
                 <p>Trò chơi dành cho desktop</p>
@@ -96,13 +98,13 @@
                     <ul>
                         <li><a href="./game/co-vua.html" class="game-p">Cờ vua</a></li>
                         <li><a href="./game/xep-hinh.html" class="game-p">Xếp hình</a></li>
-                        <li><a href="./game/Ran-san-moi.html" class="game-p">Rắn săn mồi</a></li>
+                        <li><a href="./game/Ran-san-moi.html" class="game-p">Rắn săn mồi <span class="new">NEW</span></a></li>
                         <li><a href="./game/X-O.html" class="game-p">Cờ caro</a></li>
                     </ul> 
                 </p>
             </article>
         </div>
-        <div class="project-list">
+        <div class="project-list"data-reveal>
             <article class="project-card">
                 <h3>trò chơi cá nhân</h3>
                 <p>Trò chơi dành cho điện thoại</p>
@@ -115,7 +117,7 @@
         </div>
     </section>
     
-    <section id="contact" class="contact">
+    <section id="contact" class="contact" data-reveal>
         <h2>Liên hệ</h2>
         <p>Email: xxxxxxxx@gmail.com</p>
     </section>
