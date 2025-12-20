@@ -884,9 +884,9 @@
             aiThinking = true;
             updateStatus();
 
-            setTimeout(function() {
+            setTimeout(function () {
                 var aiMove = getAIMove();
-                
+
                 if (aiMove) {
                     var fromRow = aiMove.from[0];
                     var fromCol = aiMove.from[1];
@@ -903,8 +903,9 @@
                     board[toRow][toCol] = board[fromRow][fromCol];
                     board[fromRow][fromCol] = null;
 
+                    // ✅ QUAN TRỌNG: trả lượt cho người chơi
                     currentTurn = 'red';
-                    currentTurn = currentTurn === 'red' ? 'black' : 'red';
+
                     var inCheck = isInCheck(currentTurn);
 
                     if (inCheck) {
