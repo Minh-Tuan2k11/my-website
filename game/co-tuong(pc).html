@@ -2169,7 +2169,14 @@ function updateHistory() {
     if (moveHistory.length === 0) {
         list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:20px">' +
             '<span>' + t.noMoves + '</span></div>';
-        return;
+        
+        // Also update mobile history
+        var listMobile = document.getElementById('history-list-mobile');
+        if (listMobile) {
+            listMobile.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:20px">' +
+                '<span>' + t.noMoves + '</span></div>';
+        }
+        return;  // ← NOW it's safe to return because we updated both
     }
     
     list.innerHTML = '';
@@ -2201,7 +2208,7 @@ function updateHistory() {
     list.scrollTop = list.scrollHeight;
     
     // Update mobile history too
-    updateMobileHistory(); // ADD THIS LINE
+    updateMobileHistory();
 }
 
 // Show game over modal
@@ -2409,9 +2416,7 @@ function handleCellClick(row, col) {
 
     var piece = board[row][col];
 
-    // =============================
     // TRƯỜNG HỢP: ĐÃ CHỌN QUÂN
-    // =============================
     if (selectedPiece) {
         var fromRow = selectedPiece[0];
         var fromCol = selectedPiece[1];
@@ -2425,9 +2430,7 @@ function handleCellClick(row, col) {
             }
         }
 
-        // --------------------------------
         // THỰC HIỆN NƯỚC ĐI HỢP LỆ
-        // --------------------------------
         if (isValid) {
             var testBoard = copyBoard(board);
             testBoard[row][col] = testBoard[fromRow][fromCol];
@@ -2480,12 +2483,10 @@ function handleCellClick(row, col) {
             ) {
                 makeAIMove();
             }
-            return;
+            return; // ← QUAN TRỌNG: Phải return ở đây!
         }
 
-        // --------------------------------
         // CLICK QUÂN KHÁC CÙNG MÀU → ĐỔI CHỌN
-        // --------------------------------
         if (piece && piece.side === currentTurn) {
             selectedPiece = [row, col];
             
@@ -2506,20 +2507,17 @@ function handleCellClick(row, col) {
             }
             
             highlightMoves(row, col);
-            return; // ADD THIS LINE - important!
+            return; // ← QUAN TRỌNG: Phải return ở đây!
         }
 
-        // --------------------------------
         // CLICK Ô KHÔNG HỢP LỆ → BỎ CHỌN
-        // --------------------------------
         selectedPiece = null;
         validMoves = [];
         clearHighlights();
+        return; // ← THÊM RETURN Ở ĐÂY để không chạy xuống phía dưới!
     }
 
-    // =============================
     // TRƯỜNG HỢP: CHƯA CHỌN QUÂN
-    // =============================
     if (piece && piece.side === currentTurn) {
         selectedPiece = [row, col];
         
@@ -2595,6 +2593,13 @@ function startGame(mode) {
     gameMode = mode;
     document.getElementById('menu-screen').classList.add('hidden');
     document.getElementById('game-container').classList.remove('hidden');
+    
+    // Close mobile menu if it's open
+    var mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+        mobileMenu.classList.add('hidden');
+    }
+    
     newGame();
 }
 
