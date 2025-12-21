@@ -60,7 +60,7 @@ body.dark {
 .header-inner{
     max-width: 1100px;
     margin: auto;
-    padding: 0 20px;
+    padding: 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -80,7 +80,7 @@ body.dark {
 }
 
 .logo, img {
-    max-height: 70px;
+    max-height: 110px;
     display: block;
 }
 
@@ -93,6 +93,7 @@ body.dark {
     border: none;
     cursor: pointer;
     z-index: 1100;
+    margin-right: 25px;
 }
 
 .theme-btn{
@@ -147,19 +148,11 @@ body.dark {
     }
     
     .logo img{
-        max-height: 50px;
+        max-height: 80px;
     }
     .site-header{
         padding: 0px 20px;
         height: 60px;
-    }
-    [data-reveal] {
-        transform: translateY(20px);
-        transition: opacity 0.4s ease, transform 0.4s ease;
-    }
-
-    [data-reveal].fade {
-        opacity: 0.25;
     }
 
     body{
@@ -330,7 +323,7 @@ p, li {
 }
 
 .skill-item{
-    background: #222;
+    background: var();
     color: #fff;
     padding: 8px 14px;
     border-radius: 20px;
@@ -356,23 +349,6 @@ p, li {
 .skill-item.active{
     width: 100%;
     flex-basis: 100%;
-}
-
-/* hiệu ứng các mục */
-[data-reveal] {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-[data-reveal].fade {
-    opacity: 0.3;
-    transform: translateY(20px);
-}
-
-[data-reveal].active {
-    opacity: 1;
-    transform: translateY(0);
 }
 
 /* new */
