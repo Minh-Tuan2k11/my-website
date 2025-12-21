@@ -54,7 +54,7 @@ body.dark {
     top: 0;
     left: 0;
     z-index: 800;
-    height: 120px;
+    height: 60px;
 }
 
 .header-inner{
@@ -80,8 +80,9 @@ body.dark {
 }
 
 .logo, img {
-    max-height: 110px;
+    max-height: 60px;
     display: block;
+    margin-left: 10px;
 }
 
 .menu-btn{
@@ -102,6 +103,7 @@ body.dark {
     border-radius: 12px;
     height: 35px;
     font-size: 15px;
+    margin-right: 20px;
 }
 
 .overlay{
@@ -147,8 +149,8 @@ body.dark {
         padding: 0px 25px;
     }
     
-    .logo img{
-        max-height: 80px;
+    .logo, img{
+        margin-left: 0;
     }
     .site-header{
         padding: 0px 20px;
