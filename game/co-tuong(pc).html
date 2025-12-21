@@ -190,6 +190,7 @@
         }
 
         /* GAME CONTAINER */
+        
         .game-container {
             display: flex;
             gap: 20px;
@@ -221,6 +222,9 @@
             padding: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .header {
@@ -381,6 +385,8 @@
             position: relative;
             padding: 20px;
             border-radius: 15px;
+            width: 100%;
+            max-width: 600px;
         }
 
         .board-wrapper.classic {
@@ -401,8 +407,9 @@
 
         .board {
             position: relative;
+            width: 100%;
+            max-width: 540px; /* Fixed maximum size */
             aspect-ratio: 9 / 10;
-            max-width: 600px;
             margin: 0 auto;
             padding: 5%;
             box-sizing: border-box;
@@ -652,18 +659,94 @@
             }
         }
 
+        /* MOBILE LAYOUT */
         @media (max-width: 768px) {
-            .game-container {
-                flex-direction: column;
+            /* Show hamburger menu */
+            .hamburger-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
+            /* Show top status bar */
+            .top-status-bar {
+                display: block;
+            }
+
+            /* Hide left panel */
             .left-panel {
-                max-width: 100%;
-                order: 2;
+                display: none;
+            }
+
+            /* Stack layout vertically */
+            .game-container {
+                flex-direction: column;
+                padding: 80px 15px 15px 15px; /* Space for hamburger menu */
             }
 
             .main-board {
                 order: 1;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            /* Move history goes below board */
+            .history-section-mobile {
+                order: 2;
+                width: 100%;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 15px;
+                margin-top: 15px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Smaller board on mobile */
+            .board {
+                max-width: 450px;
+            }
+
+            /* Review controls */
+            .review-controls {
+                bottom: 15px;
+                padding: 10px 15px;
+                gap: 10px;
+                font-size: 0.85rem;
+            }
+
+            .review-btn {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* TABLET LAYOUT */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .game-container {
+                max-width: 900px;
+            }
+
+            .left-panel {
+                max-width: 280px;
+            }
+
+            .board {
+                max-width: 480px;
+            }
+        }
+
+        /* DESKTOP LAYOUT */
+        @media (min-width: 1025px) {
+            .game-container {
+                max-width: 1200px;
+            }
+
+            .left-panel {
+                max-width: 350px;
+            }
+
+            .board {
+                max-width: 540px;
             }
         }
 
@@ -675,6 +758,319 @@
                 opacity: 1;
             }
         }
+        /* GAME OVER MODAL */
+        .game-over-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .game-over-modal.hidden {
+            display: none;
+        }
+
+        .game-over-content {
+            background: white;
+            border-radius: 30px;
+            padding: 50px 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-over-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .game-over-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: bold;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-over-message {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: #6b7280;
+            margin-bottom: 40px;
+        }
+
+        .game-over-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .game-over-btn {
+            padding: 18px 30px;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 600;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-over-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-over-btn.review {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+        }
+
+        .game-over-btn.replay {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+        }
+
+        .game-over-btn.home {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+        }
+
+        /* REVIEW MODE CONTROLS */
+        .review-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .review-controls.hidden {
+            display: none;
+        }
+
+        .review-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .review-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .review-btn.exit {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        }
+
+        .review-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .review-counter {
+            font-weight: bold;
+            color: #1f2937;
+            font-size: 1rem;
+            padding: 0 10px;
+            white-space: nowrap;
+        }
+
+        /* KING IN CHECK INDICATOR */
+        .piece.in-check {
+            animation: king-check 0.8s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
+        }
+
+        @keyframes king-check {
+            0%, 100% { 
+                filter: brightness(1);
+            }
+            50% { 
+                filter: brightness(1.5);
+            }
+        }
+
+        /* IMPROVED MOVE HISTORY */
+        .history-item {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-item:nth-child(odd) {
+            background: #fef3c7;
+        }
+
+        .move-number {
+            font-weight: bold;
+            color: #6b7280;
+            margin-right: 8px;
+        }
+
+        .move-from {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: 600;
+            margin: 0 3px;
+        }
+
+        .move-to {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: 600;
+            margin: 0 3px;
+        }
+
+        .move-arrow {
+            color: #6b7280;
+            margin: 0 2px;
+        }
+
+        /* HAMBURGER MENU */
+        .hamburger-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: none; /* Hidden by default, shown on mobile */
+        }
+
+        .hamburger-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* MOBILE MENU OVERLAY */
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .mobile-menu-overlay.hidden {
+            display: none;
+        }
+
+        .mobile-menu-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .mobile-menu-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-menu-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #1f2937;
+        }
+
+        .mobile-menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* TOP STATUS BAR (Mobile) */
+        .top-status-bar {
+            display: none; /* Hidden by default, shown on mobile */
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-status-bar .turn-indicator {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .top-status-bar .game-status {
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
     </style>
 </head>
 <body>
@@ -721,9 +1117,78 @@
         </div>
     </div>
 
+    <!-- GAME OVER MODAL -->
+    <div class="game-over-modal hidden" id="game-over-modal">
+        <div class="game-over-content">
+            <div class="game-over-icon" id="game-over-icon">👑</div>
+            <h2 class="game-over-title" id="game-over-title">Checkmate!</h2>
+            <p class="game-over-message" id="game-over-message">Red Wins!</p>
+            
+            <div class="game-over-buttons">
+                <button class="game-over-btn review" onclick="startReviewMode()">
+                    <span id="btn-review">📋 Continue Watching</span>
+                </button>
+                <button class="game-over-btn replay" onclick="replayGame()">
+                    <span id="btn-replay">🔄 Replay</span>
+                </button>
+                <button class="game-over-btn home" onclick="backToMenu()">
+                    <span id="btn-home">🏠 Return to Home</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REVIEW MODE CONTROLS -->
+    <div class="review-controls hidden" id="review-controls">
+        <button class="review-btn" onclick="reviewPrevMove()" id="review-prev">
+            <span id="btn-prev">◀ Back</span>
+        </button>
+        <span class="review-counter" id="review-counter">Move 1 / 10</span>
+        <button class="review-btn" onclick="reviewNextMove()" id="review-next">
+            <span id="btn-next">Next ▶</span>
+        </button>
+        <button class="review-btn exit" onclick="exitReviewMode()">
+            <span id="btn-exit-review">✖ Exit Review</span>
+        </button>
+    </div>
+
     <!-- GAME CONTAINER -->
     <div class="game-container hidden" id="game-container">
-        <!-- LEFT PANEL -->
+        <!-- HAMBURGER MENU BUTTON (Mobile) -->
+        <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()">
+            ☰
+        </button>
+
+        <!-- MOBILE MENU OVERLAY -->
+        <div class="mobile-menu-overlay hidden" id="mobile-menu">
+            <div class="mobile-menu-content">
+                <button class="mobile-menu-close" onclick="toggleMobileMenu()">✖</button>
+                <h3 class="mobile-menu-title" id="mobile-menu-title">Menu</h3>
+                
+                <div class="mobile-menu-buttons">
+                    <button class="btn-new" onclick="newGame(); toggleMobileMenu();">
+                        <span id="btn-new-text-mobile">Ván mới</span>
+                    </button>
+                    <button class="btn-undo" id="btn-undo-mobile" onclick="undoMove(); toggleMobileMenu();">
+                        <span id="btn-undo-text-mobile">Hoàn tác</span>
+                    </button>
+                    <button class="btn-menu" onclick="backToMenu()">
+                        <span id="btn-menu-text-mobile">Về Menu</span>
+                    </button>
+                    <button class="btn-lang" onclick="toggleLanguage()">
+                        <span id="btn-lang-text-mobile">EN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOP STATUS BAR (Mobile) -->
+        <div class="top-status-bar" id="top-status-bar">
+            <div class="turn-indicator" id="turn-indicator-top"></div>
+            <div class="game-status" id="game-status-top"></div>
+        </div>
+
+        <!-- LEFT PANEL (Desktop only) -->
         <div class="left-panel">
             <div class="header">
                 <h1 class="title" id="game-title">Cờ Tướng</h1>
@@ -773,6 +1238,16 @@
                 </div>
             </div>
         </div>
+
+        <!-- MOBILE HISTORY SECTION (below board on mobile) -->
+        <div class="history-section-mobile" id="history-section-mobile" style="display: none;">
+            <div class="history-title" id="history-title-mobile">Lịch sử nước đi</div>
+            <div class="history-list" id="history-list-mobile">
+                <div style="text-align: center; color: #9ca3af; padding: 20px;">
+                    <span id="no-moves-mobile">Chưa có nước đi nào</span>
+                </div>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -798,7 +1273,15 @@ var LANG = {
         skinTitle: "Chọn Giao Diện",
         skinClose: "Đóng",
         historyTitle: "Lịch sử nước đi",
-        noMoves: "Chưa có nước đi"
+        noMoves: "Chưa có nước đi",
+        gameOverTitle: "Chiếu bí!",
+        btnReview: "📋 Xem lại ván đấu",
+        btnReplay: "🔄 Chơi lại",
+        btnHome: "🏠 Về trang chủ",
+        btnPrev: "◀ Lùi",
+        btnNext: "Tiếp ▶",
+        btnExitReview: "✖ Thoát xem lại",
+        reviewCounter: "Nước đi {current} / {total}"
     },
     en: {
         title: "Xiangqi",
@@ -820,7 +1303,15 @@ var LANG = {
         skinTitle: "Choose Board Theme",
         skinClose: "Close",
         historyTitle: "Move History",
-        noMoves: "No moves yet"
+        noMoves: "No moves yet",
+        gameOverTitle: "Checkmate!",
+        btnReview: "📋 Continue Watching",
+        btnReplay: "🔄 Replay",
+        btnHome: "🏠 Return to Home",
+        btnPrev: "◀ Back",
+        btnNext: "Next ▶",
+        btnExitReview: "✖ Exit Review",
+        reviewCounter: "Move {current} / {total}"
     }
 };
 
@@ -858,6 +1349,9 @@ var PIECE_VALUES = {
 };
 
 // Game state variables
+var reviewMode = false;
+var reviewMoveIndex = 0;
+var reviewBoard = [];
 var currentLang = localStorage.getItem('xiangqi-lang') || 'vi';
 var currentSkin = localStorage.getItem('xiangqi-skin') || 'classic';
 var currentSkin = localStorage.getItem('xiangqi-skin');
@@ -877,17 +1371,69 @@ var moveHistory = [];
 var checkState = null;
 var aiThinking = false;
 
-// Game state variables
-var currentLang = localStorage.getItem('xiangqi-lang') || 'vi';
-var gameMode = 'pvp'; // 'pvp' or 'ai'
-var board = [];
-var selectedPiece = null;
-var validMoves = [];
-var currentTurn = 'red';
-var gameStatus = 'playing'; // 'playing', 'check', 'checkmate'
-var moveHistory = [];
-var checkState = null;
-var aiThinking = false;
+    // Toggle mobile menu
+function toggleMobileMenu() {
+    var menu = document.getElementById('mobile-menu');
+    menu.classList.toggle('hidden');
+}
+
+// Update mobile UI elements
+function updateMobileUI() {
+    var isMobile = window.innerWidth <= 768;
+    
+    // Show/hide mobile elements
+    var mobileHistory = document.getElementById('history-section-mobile');
+    if (mobileHistory) {
+        mobileHistory.style.display = isMobile ? 'block' : 'none';
+    }
+    
+    // Update history in mobile view
+    if (isMobile) {
+        updateMobileHistory();
+    }
+}
+
+// Update mobile history
+function updateMobileHistory() {
+    var t = LANG[currentLang];
+    var list = document.getElementById('history-list-mobile');
+    
+    if (!list) return;
+    
+    if (moveHistory.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#9ca3af;padding:20px">' +
+            '<span>' + t.noMoves + '</span></div>';
+        return;
+    }
+    
+    list.innerHTML = '';
+    for (var i = 0; i < moveHistory.length; i++) {
+        var move = moveHistory[i];
+        var item = document.createElement('div');
+        item.className = 'history-item';
+        
+        var moveNum = document.createElement('span');
+        moveNum.className = 'move-number';
+        moveNum.textContent = (i + 1) + '.';
+        
+        var pieceSymbol = PIECES[move.piece.side][move.piece.type];
+        
+        var fromCoord = String.fromCharCode(97 + move.from[1]) + (10 - move.from[0]);
+        var toCoord = String.fromCharCode(97 + move.to[1]) + (10 - move.to[0]);
+        
+        var moveText = document.createElement('span');
+        moveText.innerHTML = pieceSymbol + ' ' +
+            '<span class="move-from">' + fromCoord + '</span>' +
+            '<span class="move-arrow">→</span>' +
+            '<span class="move-to">' + toCoord + '</span>';
+        
+        item.appendChild(moveNum);
+        item.appendChild(moveText);
+        list.appendChild(item);
+    }
+    
+    list.scrollTop = list.scrollHeight;
+}
 
 // Copy board for simulation
 function copyBoard(b) {
@@ -1424,6 +1970,9 @@ function makeAIMove() {
                 checkState = currentTurn;
                 if (isCheckmate(currentTurn)) {
                     gameStatus = 'checkmate';
+                    setTimeout(function() {
+                        showGameOverModal();
+                    }, 500);
                 }
             } else {
                 checkState = null;
@@ -1471,6 +2020,12 @@ function renderBoard() {
             if (piece) {
                 var pieceEl = document.createElement('div');
                 pieceEl.className = 'piece ' + piece.side;
+                
+                // Highlight king if in check
+                if (piece.type === 'king' && checkState === piece.side) {
+                    pieceEl.classList.add('in-check');
+                }
+                
                 pieceEl.textContent = PIECES[piece.side][piece.type];
                 cell.appendChild(pieceEl);
             }
@@ -1489,21 +2044,52 @@ function updateStatus() {
     var turnIndicator = document.getElementById('turn-indicator');
     var gameStatusEl = document.getElementById('game-status');
     
-    turnIndicator.textContent = currentTurn === 'red' ? t.redTurn : t.blackTurn;
-    turnIndicator.className = 'turn-indicator turn-' + currentTurn;
+    // Desktop status
+    if (turnIndicator) {
+        turnIndicator.textContent = currentTurn === 'red' ? t.redTurn : t.blackTurn;
+        turnIndicator.className = 'turn-indicator turn-' + currentTurn;
+    }
     
-    if (aiThinking) {
-        gameStatusEl.innerHTML = '<div class="ai-thinking">' + t.aiThinking + '</div>';
-    } else if (checkState && gameStatus === 'playing') {
-        gameStatusEl.innerHTML = '<div class="check-alert">' + t.check + '</div>';
-    } else if (gameStatus === 'checkmate') {
-        var winner = checkState === 'red' ? t.blackWins : t.redWins;
-        gameStatusEl.innerHTML = '<div>' + winner + ' - ' + t.checkmate + '</div>';
-    } else {
-        gameStatusEl.innerHTML = '';
+    if (gameStatusEl) {
+        if (aiThinking) {
+            gameStatusEl.innerHTML = '<div class="ai-thinking">' + t.aiThinking + '</div>';
+        } else if (checkState && gameStatus === 'playing') {
+            gameStatusEl.innerHTML = '<div class="check-alert">' + t.check + '</div>';
+        } else if (gameStatus === 'checkmate') {
+            var winner = checkState === 'red' ? t.blackWins : t.redWins;
+            gameStatusEl.innerHTML = '<div>' + winner + ' - ' + t.checkmate + '</div>';
+        } else {
+            gameStatusEl.innerHTML = '';
+        }
+    }
+    
+    // Mobile status (top bar)
+    var turnIndicatorTop = document.getElementById('turn-indicator-top');
+    var gameStatusTop = document.getElementById('game-status-top');
+    
+    if (turnIndicatorTop) {
+        turnIndicatorTop.textContent = currentTurn === 'red' ? t.redTurn : t.blackTurn;
+        turnIndicatorTop.className = 'turn-indicator turn-' + currentTurn;
+    }
+    
+    if (gameStatusTop) {
+        if (aiThinking) {
+            gameStatusTop.innerHTML = '<div class="ai-thinking">' + t.aiThinking + '</div>';
+        } else if (checkState && gameStatus === 'playing') {
+            gameStatusTop.innerHTML = '<div class="check-alert">' + t.check + '</div>';
+        } else if (gameStatus === 'checkmate') {
+            var winner = checkState === 'red' ? t.blackWins : t.redWins;
+            gameStatusTop.innerHTML = '<div>' + winner + ' - ' + t.checkmate + '</div>';
+        } else {
+            gameStatusTop.innerHTML = '';
+        }
     }
     
     document.getElementById('btn-undo').disabled = moveHistory.length === 0;
+    var btnUndoMobile = document.getElementById('btn-undo-mobile');
+    if (btnUndoMobile) {
+        btnUndoMobile.disabled = moveHistory.length === 0;
+    }
 }
 
 // Update move history display
@@ -1527,69 +2113,184 @@ function updateHistory() {
         moveNum.className = 'move-number';
         moveNum.textContent = (i + 1) + '.';
         
-        var moveText = document.createElement('span');
+        var pieceSymbol = PIECES[move.piece.side][move.piece.type];
+        
         var fromCoord = String.fromCharCode(97 + move.from[1]) + (10 - move.from[0]);
         var toCoord = String.fromCharCode(97 + move.to[1]) + (10 - move.to[0]);
-        var pieceSymbol = PIECES[move.piece.side][move.piece.type];
-        moveText.textContent = pieceSymbol + ' ' + fromCoord + ' → ' + toCoord;
+        
+        var moveText = document.createElement('span');
+        moveText.innerHTML = pieceSymbol + ' ' +
+            '<span class="move-from">' + fromCoord + '</span>' +
+            '<span class="move-arrow">→</span>' +
+            '<span class="move-to">' + toCoord + '</span>';
         
         item.appendChild(moveNum);
         item.appendChild(moveText);
         list.appendChild(item);
     }
     
-    // Scroll to bottom
     list.scrollTop = list.scrollHeight;
+    
+    // Update mobile history too
+    updateMobileHistory(); // ADD THIS LINE
 }
 
-// Update language in UI
+// Show game over modal
+function showGameOverModal() {
+    var t = LANG[currentLang];
+    var modal = document.getElementById('game-over-modal');
+    var title = document.getElementById('game-over-title');
+    var message = document.getElementById('game-over-message');
+    var icon = document.getElementById('game-over-icon');
+    
+    var winner = checkState === 'red' ? t.blackWins : t.redWins;
+    
+    title.textContent = t.checkmate;
+    message.textContent = winner;
+    icon.textContent = checkState === 'red' ? '⚫' : '🔴';
+    
+    modal.classList.remove('hidden');
+}
+
+// Start review mode
+function startReviewMode() {
+    document.getElementById('game-over-modal').classList.add('hidden');
+    reviewMode = true;
+    reviewMoveIndex = 0;
+    
+    // Save final board state
+    reviewBoard = copyBoard(board);
+    
+    // Reset to initial position
+    initBoard();
+    renderBoard();
+    
+    // Show review controls
+    document.getElementById('review-controls').classList.remove('hidden');
+    updateReviewCounter();
+}
+
+// Review previous move
+function reviewPrevMove() {
+    if (reviewMoveIndex > 0) {
+        reviewMoveIndex--;
+        applyReviewMove();
+    }
+}
+
+// Review next move
+function reviewNextMove() {
+    if (reviewMoveIndex < moveHistory.length) {
+        reviewMoveIndex++;
+        applyReviewMove();
+    }
+}
+
+// Apply review move
+function applyReviewMove() {
+    initBoard();
+    
+    for (var i = 0; i < reviewMoveIndex; i++) {
+        var move = moveHistory[i];
+        board[move.to[0]][move.to[1]] = board[move.from[0]][move.from[1]];
+        board[move.from[0]][move.from[1]] = null;
+    }
+    
+    renderBoard();
+    updateReviewCounter();
+}
+
+// Update review counter
+function updateReviewCounter() {
+    var t = LANG[currentLang];
+    var counter = document.getElementById('review-counter');
+    var text = t.reviewCounter
+        .replace('{current}', reviewMoveIndex)
+        .replace('{total}', moveHistory.length);
+    counter.textContent = text;
+    
+    document.getElementById('review-prev').disabled = reviewMoveIndex === 0;
+    document.getElementById('review-next').disabled = reviewMoveIndex === moveHistory.length;
+}
+
+// Exit review mode
+function exitReviewMode() {
+    reviewMode = false;
+    document.getElementById('review-controls').classList.add('hidden');
+    board = reviewBoard;
+    renderBoard();
+}
+
+// Replay game
+function replayGame() {
+    document.getElementById('game-over-modal').classList.add('hidden');
+    newGame();
+}
+
+// Update updateLanguage function to include new elements
 function updateLanguage() {
     var t = LANG[currentLang];
-
     var el;
 
-    // Game screen
+    // Existing translations...
     el = document.getElementById('game-title');
     if (el) el.textContent = t.title;
-
     el = document.getElementById('game-subtitle');
     if (el) el.textContent = t.subtitle;
-
     el = document.getElementById('btn-new-text');
     if (el) el.textContent = t.newGame;
-
     el = document.getElementById('btn-undo-text');
     if (el) el.textContent = t.undo;
-
     el = document.getElementById('btn-menu-text');
     if (el) el.textContent = t.menu;
-
     el = document.getElementById('btn-lang-text');
     if (el) el.textContent = t.langBtn;
-
     el = document.getElementById('history-title');
     if (el) el.textContent = t.historyTitle;
-
-    // Menu screen
     el = document.getElementById('menu-pvp');
     if (el) el.textContent = t.menuPvP;
-
     el = document.getElementById('menu-ai');
     if (el) el.textContent = t.menuAI;
-
     el = document.getElementById('menu-skins');
     if (el) el.textContent = t.menuSkins;
-
-    // Skin modal
     el = document.getElementById('skin-title');
     if (el) el.textContent = t.skinTitle;
-
     el = document.getElementById('skin-close-btn');
     if (el) el.textContent = t.skinClose;
-
-    // Update status and history
+    
+    // New translations
+    el = document.getElementById('btn-review');
+    if (el) el.textContent = t.btnReview;
+    el = document.getElementById('btn-replay');
+    if (el) el.textContent = t.btnReplay;
+    el = document.getElementById('btn-home');
+    if (el) el.textContent = t.btnHome;
+    el = document.getElementById('btn-prev');
+    if (el) el.textContent = t.btnPrev;
+    el = document.getElementById('btn-next');
+    if (el) el.textContent = t.btnNext;
+    el = document.getElementById('btn-exit-review');
+    if (el) el.textContent = t.btnExitReview;
+    
+    // Mobile menu translations
+    el = document.getElementById('mobile-menu-title');
+    if (el) el.textContent = t.menu;
+    el = document.getElementById('btn-new-text-mobile');
+    if (el) el.textContent = t.newGame;
+    el = document.getElementById('btn-undo-text-mobile');
+    if (el) el.textContent = t.undo;
+    el = document.getElementById('btn-menu-text-mobile');
+    if (el) el.textContent = t.menu;
+    el = document.getElementById('btn-lang-text-mobile');
+    if (el) el.textContent = t.langBtn;
+    el = document.getElementById('history-title-mobile');
+    if (el) el.textContent = t.historyTitle;
+    el = document.getElementById('no-moves-mobile');
+    if (el) el.textContent = t.noMoves;
+    
     updateStatus();
     updateHistory();
+    if (reviewMode) updateReviewCounter();
 }
 function clearHighlights() {
     var cells = document.querySelectorAll('.cell');
@@ -1613,11 +2314,10 @@ function highlightMoves(row, col) {
         cell.classList.add('selected');
     }
 
-    var moves = getValidMoves(row, col, piece);
-
-    for (var i = 0; i < moves.length; i++) {
-        var r = moves[i][0];
-        var c = moves[i][1];
+    // Use the already-filtered validMoves array instead of recalculating
+    for (var i = 0; i < validMoves.length; i++) {
+        var r = validMoves[i][0];
+        var c = validMoves[i][1];
 
         var targetCell = document.querySelector(
             '.cell[data-row="' + r + '"][data-col="' + c + '"]'
@@ -1686,6 +2386,9 @@ function handleCellClick(row, col) {
                 checkState = currentTurn;
                 if (isCheckmate(currentTurn)) {
                     gameStatus = 'checkmate';
+                    setTimeout(function() {
+                        showGameOverModal();
+                    }, 500);
                 }
             } else {
                 checkState = null;
@@ -1716,9 +2419,25 @@ function handleCellClick(row, col) {
         // --------------------------------
         if (piece && piece.side === currentTurn) {
             selectedPiece = [row, col];
-            validMoves = getValidMoves(row, col, piece);
+            
+            // Get all possible moves
+            var allMoves = getValidMoves(row, col, piece);
+            validMoves = [];
+            
+            // Filter out moves that would leave king in check
+            for (var i = 0; i < allMoves.length; i++) {
+                var testBoard = copyBoard(board);
+                testBoard[allMoves[i][0]][allMoves[i][1]] = testBoard[row][col];
+                testBoard[row][col] = null;
+                
+                // Only add move if it doesn't leave king in check
+                if (!isInCheck(currentTurn, testBoard) && !kingsFacing(testBoard)) {
+                    validMoves.push(allMoves[i]);
+                }
+            }
+            
             highlightMoves(row, col);
-            return;
+            return; // ADD THIS LINE - important!
         }
 
         // --------------------------------
@@ -1727,7 +2446,6 @@ function handleCellClick(row, col) {
         selectedPiece = null;
         validMoves = [];
         clearHighlights();
-        return;
     }
 
     // =============================
@@ -1735,7 +2453,23 @@ function handleCellClick(row, col) {
     // =============================
     if (piece && piece.side === currentTurn) {
         selectedPiece = [row, col];
-        validMoves = getValidMoves(row, col, piece);
+        
+        // Get all possible moves
+        var allMoves = getValidMoves(row, col, piece);
+        validMoves = [];
+        
+        // Filter out moves that would leave king in check
+        for (var i = 0; i < allMoves.length; i++) {
+            var testBoard = copyBoard(board);
+            testBoard[allMoves[i][0]][allMoves[i][1]] = testBoard[row][col];
+            testBoard[row][col] = null;
+            
+            // Only add move if it doesn't leave king in check
+            if (!isInCheck(currentTurn, testBoard) && !kingsFacing(testBoard)) {
+                validMoves.push(allMoves[i]);
+            }
+        }
+        
         highlightMoves(row, col);
     }
 }
@@ -1881,5 +2615,11 @@ function selectSkin(skin, event) {
     // Draw board lines
     drawBoardLines(); // Add this line
 })();
+// Handle window resize
+window.addEventListener('resize', function() {
+    updateMobileUI();
+});
 
+// Initialize mobile UI on load
+updateMobileUI();
 </script>
