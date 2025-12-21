@@ -2533,6 +2533,9 @@ function startGame(mode) {
 function backToMenu() {
     document.getElementById('game-container').classList.add('hidden');
     document.getElementById('menu-screen').classList.remove('hidden');
+    document.getElementById('game-over-modal').classList.add('hidden');
+    document.getElementById('review-controls').classList.add('hidden');
+    reviewMode = false;
 }
 
 // Show skin modal
