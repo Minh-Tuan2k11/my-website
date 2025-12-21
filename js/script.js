@@ -2,7 +2,6 @@ const menuBtn = document.querySelector('.menu-btn');
 const nav = document.querySelector('.main-nav');
 const overlay = document.querySelector('.overlay');
 const themeBtn = document.querySelector('.theme-btn');
-const elements = document.querySelectorAll('[data-reveal]');
 const logo = document.querySelector('.logo');
 
 // kích hoạt menu-btn
