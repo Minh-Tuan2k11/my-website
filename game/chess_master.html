@@ -788,6 +788,13 @@
                     <button class="setting-btn" onclick="setTheme('purple')" id="theme-purple">Royal Purple</button>
                 </div>
             </div>
+            <div class="setting-item">
+                <h3 id="setting-player-color">Play as (AI Mode)</h3>
+                <div class="setting-options">
+                    <button class="setting-btn active" onclick="setPlayerColor('white')" id="player-white">White</button>
+                    <button class="setting-btn" onclick="setPlayerColor('black')" id="player-black">Black</button>
+                </div>
+            </div>
 
             <div class="button-group">
                 <button class="btn-secondary" onclick="showPage('welcome-page')" id="btn-back-settings">Back to Menu</button>
@@ -924,7 +931,10 @@
                 wins: 'Wins!',
                 stalemate: 'Stalemate! Draw!',
                 pvpMode: 'Player vs Player',
-                aiMode: 'Player vs Computer'
+                aiMode: 'Player vs Computer',
+                settingPlayerColor: 'Play as (AI Mode)',
+                playerColorWhite: 'White',
+                playerColorBlack: 'Black',
             },
             vi: {
                 welcomeSubtitle: 'Trải nghiệm trò chơi chiến lược vượt thời gian',
@@ -998,7 +1008,10 @@
                 wins: 'Thắng!',
                 stalemate: 'Hòa Cờ!',
                 pvpMode: 'Người vs Người',
-                aiMode: 'Người vs Máy'
+                aiMode: 'Người vs Máy',
+                settingPlayerColor: 'Chơi với (Chế độ AI)',
+                playerColorWhite: 'Trắng',
+                playerColorBlack: 'Đen',
             }
         };
 
@@ -1006,7 +1019,8 @@
             language: 'en',
             theme: 'classic',
             selectedMode: null,
-            selectedDifficulty: 'easy'
+            selectedDifficulty: 'easy',
+            playerColor: 'white'  // ADD THIS LINE
         };
 
         let gameState = {
@@ -1019,7 +1033,14 @@
             capturedPieces: { white: [], black: [] },
             whiteKingPos: null,
             blackKingPos: null,
-            enPassantTarget: null
+            enPassantTarget: null,
+            // ADD THESE LINES:
+            whiteKingMoved: false,
+            blackKingMoved: false,
+            whiteKingRookMoved: false,
+            whiteQueenRookMoved: false,
+            blackKingRookMoved: false,
+            blackQueenRookMoved: false
         };
 
         function showPage(pageId) {
@@ -1122,6 +1143,9 @@
             document.getElementById('captured-black-title').textContent = t.capturedBlack;
             document.getElementById('move-history-title').textContent = t.moveHistory;
             document.getElementById('promotion-title').textContent = t.promotionTitle;
+            document.getElementById('setting-player-color').textContent = t.settingPlayerColor;
+            document.getElementById('player-white').textContent = t.playerColorWhite;
+            document.getElementById('player-black').textContent = t.playerColorBlack;
         }
 
         function setTheme(theme) {
@@ -1131,6 +1155,14 @@
             });
             event.target.classList.add('active');
             renderBoard();
+        }
+
+        function setPlayerColor(color) {
+            gameSettings.playerColor = color;
+            document.querySelectorAll('#settings .setting-btn').forEach(b => {
+                if (b.id.startsWith('player-')) b.classList.remove('active');
+            });
+            event.target.classList.add('active');
         }
 
         function startGame() {
@@ -1163,7 +1195,7 @@
             ];
 
             gameState.board = initialBoard.map(row => [...row]);
-            gameState.currentTurn = 'white';
+            gameState.currentTurn = 'white';  // White always goes first
             gameState.selectedSquare = null;
             gameState.gameOver = false;
             gameState.moveHistory = [];
@@ -1171,11 +1203,23 @@
             gameState.whiteKingPos = { row: 7, col: 4 };
             gameState.blackKingPos = { row: 0, col: 4 };
             gameState.enPassantTarget = null;
+            // ADD THESE LINES:
+            gameState.whiteKingMoved = false;
+            gameState.blackKingMoved = false;
+            gameState.whiteKingRookMoved = false;
+            gameState.whiteQueenRookMoved = false;
+            gameState.blackKingRookMoved = false;
+            gameState.blackQueenRookMoved = false;
 
             renderBoard();
             updateStatus();
             updateMoveHistory();
             updateCapturedPieces();
+            
+            // ADD THIS BLOCK - AI makes first move if playing white:
+            if (gameState.gameMode === 'ai' && gameSettings.playerColor === 'black' && !gameState.gameOver) {
+                setTimeout(makeAIMove, 500);
+            }
         }
 
         function renderBoard() {
@@ -1183,10 +1227,17 @@
             board.innerHTML = '';
             board.className = `theme-${gameSettings.theme}`;
 
+            // Flip board in AI mode when playing as black
+            const flipBoard = gameState.gameMode === 'ai' && gameSettings.playerColor === 'black';
+
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
+                    // Flip coordinates if playing as black
+                    const displayRow = flipBoard ? 7 - row : row;
+                    const displayCol = flipBoard ? 7 - col : col;
+                    
                     const square = document.createElement('div');
-                    square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.className = `square ${(displayRow + displayCol) % 2 === 0 ? 'light' : 'dark'}`;
                     square.dataset.row = row;
                     square.dataset.col = col;
                     
@@ -1202,41 +1253,46 @@
 
             highlightCheck();
         }
-
-        function getPieceSymbol(piece) {
-            const isWhite = piece === piece.toUpperCase();
-            const color = isWhite ? 'white' : 'black';
-            const typeMap = { 'k': 'king', 'q': 'queen', 'r': 'rook', 'b': 'bishop', 'n': 'knight', 'p': 'pawn' };
-            return PIECES[color][typeMap[piece.toLowerCase()]];
-        }
-
-        function handleSquareClick(row, col) {
-            if (gameState.gameOver) return;
-            if (gameState.gameMode === 'ai' && gameState.currentTurn === 'black') return;
-
-            const piece = gameState.board[row][col];
-            const isCurrentPlayerPiece = piece && 
-                ((gameState.currentTurn === 'white' && piece === piece.toUpperCase()) ||
-                 (gameState.currentTurn === 'black' && piece === piece.toLowerCase()));
-
-            if (gameState.selectedSquare) {
-                const [selectedRow, selectedCol] = gameState.selectedSquare;
-                
-                if (isLegalMove(selectedRow, selectedCol, row, col)) {
-                    makeMove(selectedRow, selectedCol, row, col);
-                    gameState.selectedSquare = null;
-                } else if (isCurrentPlayerPiece) {
-                    gameState.selectedSquare = [row, col];
-                } else {
-                    gameState.selectedSquare = null;
+                function getPieceSymbol(piece) {
+                    const isWhite = piece === piece.toUpperCase();
+                    const color = isWhite ? 'white' : 'black';
+                    const typeMap = { 'k': 'king', 'q': 'queen', 'r': 'rook', 'b': 'bishop', 'n': 'knight', 'p': 'pawn' };
+                    return PIECES[color][typeMap[piece.toLowerCase()]];
                 }
-            } else if (isCurrentPlayerPiece) {
-                gameState.selectedSquare = [row, col];
-            }
 
-            renderBoard();
-            highlightLegalMoves();
-        }
+            function handleSquareClick(row, col) {
+                    if (gameState.gameOver) return;
+                    
+                    // ADD THIS: Check if it's the human player's turn in AI mode
+                    if (gameState.gameMode === 'ai') {
+                        const isHumanTurn = (gameSettings.playerColor === 'white' && gameState.currentTurn === 'white') ||
+                                        (gameSettings.playerColor === 'black' && gameState.currentTurn === 'black');
+                        if (!isHumanTurn) return;
+                    }
+
+                    const piece = gameState.board[row][col];
+                    const isCurrentPlayerPiece = piece && 
+                        ((gameState.currentTurn === 'white' && piece === piece.toUpperCase()) ||
+                        (gameState.currentTurn === 'black' && piece === piece.toLowerCase()));
+
+                    if (gameState.selectedSquare) {
+                        const [selectedRow, selectedCol] = gameState.selectedSquare;
+                        
+                        if (isLegalMove(selectedRow, selectedCol, row, col)) {
+                            makeMove(selectedRow, selectedCol, row, col);
+                            gameState.selectedSquare = null;
+                        } else if (isCurrentPlayerPiece) {
+                            gameState.selectedSquare = [row, col];
+                        } else {
+                            gameState.selectedSquare = null;
+                        }
+                    } else if (isCurrentPlayerPiece) {
+                        gameState.selectedSquare = [row, col];
+                    }
+
+                    renderBoard();
+                    highlightLegalMoves();
+                }
 
         function highlightLegalMoves() {
             if (!gameState.selectedSquare) return;
@@ -1260,18 +1316,34 @@
             if (!piece) return [];
 
             const moves = getPossibleMoves(row, col, piece);
+            const isWhite = piece === piece.toUpperCase();
             
+            // Filter moves that would leave king in check
             return moves.filter(([r, c]) => {
+                // Simulate the move
                 const tempBoard = gameState.board.map(row => [...row]);
+                const capturedPiece = tempBoard[r][c];
                 tempBoard[r][c] = piece;
                 tempBoard[row][col] = null;
 
-                const kingPos = piece.toLowerCase() === 'k' 
-                    ? { row: r, col: c }
-                    : (piece === piece.toUpperCase() ? gameState.whiteKingPos : gameState.blackKingPos);
+                // Handle en passant capture
+                if (piece.toLowerCase() === 'p' && gameState.enPassantTarget &&
+                    r === gameState.enPassantTarget.row && c === gameState.enPassantTarget.col) {
+                    const captureRow = isWhite ? r + 1 : r - 1;
+                    tempBoard[captureRow][c] = null;
+                }
 
-                const inCheck = isSquareUnderAttack(kingPos.row, kingPos.col, 
-                    piece === piece.toUpperCase() ? 'white' : 'black', tempBoard);
+                // Determine king position after move
+                let kingPos;
+                if (piece.toLowerCase() === 'k') {
+                    kingPos = { row: r, col: c };
+                } else {
+                    kingPos = isWhite ? {...gameState.whiteKingPos} : {...gameState.blackKingPos};
+                }
+
+                // Check if king would be in check after this move
+                const inCheck = isSquareUnderAttackWithBoard(kingPos.row, kingPos.col, 
+                    isWhite ? 'white' : 'black', tempBoard);
 
                 return !inCheck;
             });
@@ -1290,6 +1362,117 @@
                 case 'k': return getKingMoves(row, col, isWhite);
             }
             return [];
+        }
+
+        function getPossibleMovesForBoard(row, col, piece, board) {
+            const type = piece.toLowerCase();
+            const isWhite = piece === piece.toUpperCase();
+
+            switch(type) {
+                case 'p': return getPawnMovesForBoard(row, col, isWhite, board);
+                case 'n': return getKnightMovesForBoard(row, col, isWhite, board);
+                case 'b': return getBishopMovesForBoard(row, col, isWhite, board);
+                case 'r': return getRookMovesForBoard(row, col, isWhite, board);
+                case 'q': return getQueenMovesForBoard(row, col, isWhite, board);
+                case 'k': return getKingMovesForBoard(row, col, isWhite, board);
+            }
+            return [];
+        }
+
+        function getPawnMovesForBoard(row, col, isWhite, board) {
+            const moves = [];
+            const direction = isWhite ? -1 : 1;
+
+            // Diagonal captures only (for checking attacks)
+            [-1, 1].forEach(colOffset => {
+                const newRow = row + direction;
+                const newCol = col + colOffset;
+                if (newCol >= 0 && newCol < 8 && newRow >= 0 && newRow < 8) {
+                    moves.push([newRow, newCol]);
+                }
+            });
+
+            return moves;
+        }
+
+        function getKnightMovesForBoard(row, col, isWhite, board) {
+            const moves = [];
+            const offsets = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+
+            offsets.forEach(([rowOffset, colOffset]) => {
+                const newRow = row + rowOffset;
+                const newCol = col + colOffset;
+                if (isValidMoveForBoard(newRow, newCol, isWhite, board)) {
+                    moves.push([newRow, newCol]);
+                }
+            });
+
+            return moves;
+        }
+
+        function getBishopMovesForBoard(row, col, isWhite, board) {
+            return getSlidingMovesForBoard(row, col, isWhite, [[-1,-1],[-1,1],[1,-1],[1,1]], board);
+        }
+
+        function getRookMovesForBoard(row, col, isWhite, board) {
+            return getSlidingMovesForBoard(row, col, isWhite, [[-1,0],[1,0],[0,-1],[0,1]], board);
+        }
+
+        function getQueenMovesForBoard(row, col, isWhite, board) {
+            return getSlidingMovesForBoard(row, col, isWhite, [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]], board);
+        }
+
+        function getKingMovesForBoard(row, col, isWhite, board) {
+            const moves = [];
+            const offsets = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+            offsets.forEach(([rowOffset, colOffset]) => {
+                const newRow = row + rowOffset;
+                const newCol = col + colOffset;
+                if (isValidMoveForBoard(newRow, newCol, isWhite, board)) {
+                    moves.push([newRow, newCol]);
+                }
+            });
+
+            return moves;
+        }
+
+        function getSlidingMovesForBoard(row, col, isWhite, directions, board) {
+            const moves = [];
+
+            directions.forEach(([rowDir, colDir]) => {
+                let newRow = row + rowDir;
+                let newCol = col + colDir;
+
+                while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+                    const target = board[newRow][newCol];
+                    
+                    if (!target) {
+                        moves.push([newRow, newCol]);
+                    } else {
+                        if ((isWhite && target === target.toLowerCase()) || 
+                            (!isWhite && target === target.toUpperCase())) {
+                            moves.push([newRow, newCol]);
+                        }
+                        break;
+                    }
+
+                    newRow += rowDir;
+                    newCol += colDir;
+                }
+            });
+
+            return moves;
+        }
+
+        function isValidMoveForBoard(row, col, isWhite, board) {
+            if (row < 0 || row >= 8 || col < 0 || col >= 8) return false;
+            
+            const target = board[row][col];
+            if (!target) return true;
+            
+            return (isWhite && target === target.toLowerCase()) || 
+                (!isWhite && target === target.toUpperCase());
         }
 
         function getPawnMoves(row, col, isWhite) {
@@ -1368,6 +1551,43 @@
                 }
             });
 
+            // ADD CASTLING LOGIC:
+            if (isWhite && !gameState.whiteKingMoved && row === 7 && col === 4) {
+                // Kingside castling
+                if (!gameState.whiteKingRookMoved && 
+                    !gameState.board[7][5] && !gameState.board[7][6] &&
+                    !isSquareUnderAttack(7, 4, 'white') &&
+                    !isSquareUnderAttack(7, 5, 'white') &&
+                    !isSquareUnderAttack(7, 6, 'white')) {
+                    moves.push([7, 6]);
+                }
+                // Queenside castling
+                if (!gameState.whiteQueenRookMoved && 
+                    !gameState.board[7][1] && !gameState.board[7][2] && !gameState.board[7][3] &&
+                    !isSquareUnderAttack(7, 4, 'white') &&
+                    !isSquareUnderAttack(7, 3, 'white') &&
+                    !isSquareUnderAttack(7, 2, 'white')) {
+                    moves.push([7, 2]);
+                }
+            } else if (!isWhite && !gameState.blackKingMoved && row === 0 && col === 4) {
+                // Kingside castling
+                if (!gameState.blackKingRookMoved && 
+                    !gameState.board[0][5] && !gameState.board[0][6] &&
+                    !isSquareUnderAttack(0, 4, 'black') &&
+                    !isSquareUnderAttack(0, 5, 'black') &&
+                    !isSquareUnderAttack(0, 6, 'black')) {
+                    moves.push([0, 6]);
+                }
+                // Queenside castling
+                if (!gameState.blackQueenRookMoved && 
+                    !gameState.board[0][1] && !gameState.board[0][2] && !gameState.board[0][3] &&
+                    !isSquareUnderAttack(0, 4, 'black') &&
+                    !isSquareUnderAttack(0, 3, 'black') &&
+                    !isSquareUnderAttack(0, 2, 'black')) {
+                    moves.push([0, 2]);
+                }
+            }
+
             return moves;
         }
 
@@ -1417,7 +1637,9 @@
         function makeMove(fromRow, fromCol, toRow, toCol) {
             const piece = gameState.board[fromRow][fromCol];
             const capturedPiece = gameState.board[toRow][toCol];
+            const isWhite = piece === piece.toUpperCase();
 
+            // Handle en passant capture
             if (piece.toLowerCase() === 'p' && gameState.enPassantTarget &&
                 toRow === gameState.enPassantTarget.row && toCol === gameState.enPassantTarget.col) {
                 const captureRow = gameState.currentTurn === 'white' ? toRow + 1 : toRow - 1;
@@ -1437,6 +1659,22 @@
                 notation: moveNotation
             });
 
+            // CASTLING EXECUTION - ADD THIS BLOCK:
+            if (piece.toLowerCase() === 'k' && Math.abs(toCol - fromCol) === 2) {
+                // Kingside castling
+                if (toCol === 6) {
+                    const rookRow = isWhite ? 7 : 0;
+                    gameState.board[rookRow][5] = gameState.board[rookRow][7];
+                    gameState.board[rookRow][7] = null;
+                }
+                // Queenside castling
+                else if (toCol === 2) {
+                    const rookRow = isWhite ? 7 : 0;
+                    gameState.board[rookRow][3] = gameState.board[rookRow][0];
+                    gameState.board[rookRow][0] = null;
+                }
+            }
+
             gameState.board[toRow][toCol] = piece;
             gameState.board[fromRow][fromCol] = null;
 
@@ -1445,11 +1683,23 @@
                 gameState.capturedPieces[capturedColor].push(capturedPiece);
             }
 
+            // TRACK PIECE MOVEMENTS - ADD THIS BLOCK:
             if (piece.toLowerCase() === 'k') {
-                if (gameState.currentTurn === 'white') {
+                if (isWhite) {
+                    gameState.whiteKingMoved = true;
                     gameState.whiteKingPos = { row: toRow, col: toCol };
                 } else {
+                    gameState.blackKingMoved = true;
                     gameState.blackKingPos = { row: toRow, col: toCol };
+                }
+            }
+            if (piece.toLowerCase() === 'r') {
+                if (isWhite) {
+                    if (fromRow === 7 && fromCol === 7) gameState.whiteKingRookMoved = true;
+                    if (fromRow === 7 && fromCol === 0) gameState.whiteQueenRookMoved = true;
+                } else {
+                    if (fromRow === 0 && fromCol === 7) gameState.blackKingRookMoved = true;
+                    if (fromRow === 0 && fromCol === 0) gameState.blackQueenRookMoved = true;
                 }
             }
 
@@ -1466,7 +1716,7 @@
 
             finishTurn();
         }
-
+                
         function finishTurn() {
             gameState.currentTurn = gameState.currentTurn === 'white' ? 'black' : 'white';
             
@@ -1489,11 +1739,15 @@
                 return;
             }
 
-            if (gameState.gameMode === 'ai' && gameState.currentTurn === 'black' && !gameState.gameOver) {
-                setTimeout(makeAIMove, 500);
+            // MODIFY THIS: AI moves when it's AI's turn (regardless of color)
+            if (gameState.gameMode === 'ai' && !gameState.gameOver) {
+                const isAITurn = (gameSettings.playerColor === 'white' && gameState.currentTurn === 'black') ||
+                                (gameSettings.playerColor === 'black' && gameState.currentTurn === 'white');
+                if (isAITurn) {
+                    setTimeout(makeAIMove, 500);
+                }
             }
         }
-
         function getMoveNotation(fromRow, fromCol, toRow, toCol, piece, captured) {
             const files = 'abcdefgh';
             const pieceSymbol = piece.toLowerCase() === 'p' ? '' : piece.toUpperCase();
@@ -1522,6 +1776,27 @@
             return false;
         }
 
+        function isSquareUnderAttackWithBoard(row, col, color, board) {
+            const enemyColor = color === 'white' ? 'black' : 'white';
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (!piece) continue;
+                    
+                    const pieceColor = piece === piece.toUpperCase() ? 'white' : 'black';
+                    if (pieceColor !== enemyColor) continue;
+
+                    // Get possible moves without recursion
+                    const moves = getPossibleMovesForBoard(r, c, piece, board);
+                    if (moves.some(([mr, mc]) => mr === row && mc === col)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
         function isInCheck(color = gameState.currentTurn) {
             const kingPos = color === 'white' ? gameState.whiteKingPos : gameState.blackKingPos;
             return isSquareUnderAttack(kingPos.row, kingPos.col, color);
@@ -1626,11 +1901,16 @@
 
         function getRandomMove() {
             const allMoves = [];
+            const aiColor = gameSettings.playerColor === 'white' ? 'black' : 'white';
             
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const piece = gameState.board[r][c];
-                    if (!piece || piece === piece.toUpperCase()) continue;
+                    if (!piece) continue;
+                    
+                    // MODIFY THIS: Check if piece belongs to AI
+                    const pieceColor = piece === piece.toUpperCase() ? 'white' : 'black';
+                    if (pieceColor !== aiColor) continue;
                     
                     const legalMoves = getLegalMoves(r, c);
                     legalMoves.forEach(([toR, toC]) => {
@@ -1645,11 +1925,16 @@
         function getBestMove(depth) {
             let bestMove = null;
             let bestScore = -Infinity;
+            const aiColor = gameSettings.playerColor === 'white' ? 'black' : 'white';
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const piece = gameState.board[r][c];
-                    if (!piece || piece === piece.toUpperCase()) continue;
+                    if (!piece) continue;
+                    
+                    // MODIFY THIS: Check if piece belongs to AI
+                    const pieceColor = piece === piece.toUpperCase() ? 'white' : 'black';
+                    if (pieceColor !== aiColor) continue;
                     
                     const legalMoves = getLegalMoves(r, c);
                     legalMoves.forEach(([toR, toC]) => {
@@ -1684,6 +1969,7 @@
 
         function evaluateBoard() {
             let score = 0;
+            const aiColor = gameSettings.playerColor === 'white' ? 'black' : 'white';
             
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
@@ -1691,7 +1977,9 @@
                     if (!piece) continue;
                     
                     const value = getPieceValue(piece);
-                    score += piece === piece.toLowerCase() ? value : -value;
+                    const pieceColor = piece === piece.toUpperCase() ? 'white' : 'black';
+                    // ADD THIS: Score from AI's perspective
+                    score += pieceColor === aiColor ? value : -value;
                 }
             }
             
