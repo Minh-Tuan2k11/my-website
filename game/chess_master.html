@@ -639,6 +639,23 @@
         position: relative;
     }
 
+    /* Piece hover and selection effects */
+    .square {
+        transition: transform 0.2s ease;
+    }
+
+    .square:hover {
+        transform: scale(1.05);
+    }
+
+    .square.selected {
+        animation: piece-bounce 0.5s ease;
+    }
+
+    @keyframes piece-bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
     .square:hover {
         opacity: 0.8;
     }
@@ -1039,10 +1056,11 @@
     }
     /* Replay Mode Controls */
     .replay-controls {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
+        position: relative; /* CHANGE THIS */
+        bottom: auto; /* CHANGE THIS */
+        left: auto; /* CHANGE THIS */
+        transform: none; /* CHANGE THIS */
+        margin: 30px auto 0; /* ADD THIS */
         background: rgba(255, 255, 255, 0.95);
         padding: 15px 25px;
         border-radius: 50px;
@@ -1106,6 +1124,30 @@
             padding: 8px 15px;
             font-size: 0.85rem;
         }
+    }
+    /* Theme-specific piece colors */
+    .theme-classic .square {
+        color: #000;
+    }
+
+    .theme-modern .square {
+        filter: saturate(1.2);
+    }
+
+    .theme-blue .square {
+        color: #1e3a8a;
+    }
+
+    .theme-blue .square.dark {
+        color: #f0f9ff;
+    }
+
+    .theme-purple .square {
+        color: #4c1d95;
+    }
+
+    .theme-purple .square.dark {
+        color: #faf5ff;
     }
 </style>
 </head>
@@ -1359,7 +1401,7 @@
                 <button class="btn-primary" onclick="closeReview()" id="review-close">Close</button>
                 <button class="btn-primary" onclick="returnToMenu(); closeReview()" id="review-menu">Main Menu</button>
             </div>
-
+            
             <!-- Replay Controls -->
             <div class="replay-controls hidden" id="replay-controls">
                 <button class="replay-btn" onclick="replayPrevMove()" id="replay-prev">◀ Previous</button>
@@ -1369,6 +1411,8 @@
             </div>
         </div>
     </div>
+
+
     <div class="overlay" id="overlay"></div>
     <div class="promotion-dialog" id="promotion-dialog">
         <h3 id="promotion-title">Choose Promotion Piece</h3>
@@ -1376,35 +1420,23 @@
     </div>
 
 <script>
-    // Hide/show hamburger menu based on current page
-    function updateHamburgerVisibility() {
-        const hamburger = document.querySelector('.hamburger-menu');
-        const gameActive = document.getElementById('game-container').classList.contains('active');
-        
-        if (hamburger) {
-            hamburger.style.display = gameActive ? 'block' : 'none';
+    const PIECE_SETS = {
+        classic: {
+            white: { king: '♔', queen: '♕', rook: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
+            black: { king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟' }
+        },
+        modern: {
+            white: { king: '🤴', queen: '👸', rook: '🏰', bishop: '⛪', knight: '🐴', pawn: '⚪' },
+            black: { king: '🤴🏿', queen: '👸🏿', rook: '🏯', bishop: '🕌', knight: '🐎', pawn: '⚫' }
+        },
+        blue: {
+            white: { king: '♔', queen: '♕', rook: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
+            black: { king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟' }
+        },
+        purple: {
+            white: { king: '♔', queen: '♕', rook: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
+            black: { king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟' }
         }
-    }
-
-    // Update visibility when showing pages
-    const originalShowPage = showPage;
-    showPage = function(pageId) {
-        originalShowPage(pageId);
-        updateHamburgerVisibility();
-    };
-
-    // Update visibility when starting game
-    const originalStartGame = startGame;
-    startGame = function() {
-        originalStartGame();
-        setTimeout(updateHamburgerVisibility, 100);
-    };
-
-    // Initial check
-    updateHamburgerVisibility();
-    const PIECES = {
-        white: { king: '♔', queen: '♕', rook: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
-        black: { king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟' }
     };
 
     const TRANSLATIONS = {
@@ -1985,7 +2017,14 @@
                 
                 const piece = gameState.board[row][col];
                 if (piece) {
-                    square.textContent = getPieceSymbol(piece);
+                    const pieceSymbol = getPieceSymbol(piece);
+                    square.textContent = pieceSymbol;
+                    
+                    // Add color-specific styling
+                    const isWhite = piece === piece.toUpperCase();
+                    square.style.textShadow = isWhite ? 
+                        '0 2px 4px rgba(0,0,0,0.4), 0 0 8px rgba(255,255,255,0.6)' : 
+                        '0 2px 4px rgba(0,0,0,0.6), 0 0 8px rgba(0,0,0,0.3)';
                 }
 
                 square.addEventListener('click', () => handleSquareClick(row, col));
@@ -1995,46 +2034,49 @@
 
         highlightCheck();
     }
-            function getPieceSymbol(piece) {
-                const isWhite = piece === piece.toUpperCase();
-                const color = isWhite ? 'white' : 'black';
-                const typeMap = { 'k': 'king', 'q': 'queen', 'r': 'rook', 'b': 'bishop', 'n': 'knight', 'p': 'pawn' };
-                return PIECES[color][typeMap[piece.toLowerCase()]];
+    function getPieceSymbol(piece) {
+        const isWhite = piece === piece.toUpperCase();
+        const color = isWhite ? 'white' : 'black';
+        const typeMap = { 'k': 'king', 'q': 'queen', 'r': 'rook', 'b': 'bishop', 'n': 'knight', 'p': 'pawn' };
+        
+        // Use theme-specific piece set
+        const pieceSet = PIECE_SETS[gameSettings.theme] || PIECE_SETS.classic;
+        return pieceSet[color][typeMap[piece.toLowerCase()]];
+    }
+
+    function handleSquareClick(row, col) {
+            if (gameState.gameOver) return;
+            
+            // ADD THIS: Check if it's the human player's turn in AI mode
+            if (gameState.gameMode === 'ai') {
+                const isHumanTurn = (gameSettings.playerColor === 'white' && gameState.currentTurn === 'white') ||
+                                (gameSettings.playerColor === 'black' && gameState.currentTurn === 'black');
+                if (!isHumanTurn) return;
             }
 
-        function handleSquareClick(row, col) {
-                if (gameState.gameOver) return;
+            const piece = gameState.board[row][col];
+            const isCurrentPlayerPiece = piece && 
+                ((gameState.currentTurn === 'white' && piece === piece.toUpperCase()) ||
+                (gameState.currentTurn === 'black' && piece === piece.toLowerCase()));
+
+            if (gameState.selectedSquare) {
+                const [selectedRow, selectedCol] = gameState.selectedSquare;
                 
-                // ADD THIS: Check if it's the human player's turn in AI mode
-                if (gameState.gameMode === 'ai') {
-                    const isHumanTurn = (gameSettings.playerColor === 'white' && gameState.currentTurn === 'white') ||
-                                    (gameSettings.playerColor === 'black' && gameState.currentTurn === 'black');
-                    if (!isHumanTurn) return;
-                }
-
-                const piece = gameState.board[row][col];
-                const isCurrentPlayerPiece = piece && 
-                    ((gameState.currentTurn === 'white' && piece === piece.toUpperCase()) ||
-                    (gameState.currentTurn === 'black' && piece === piece.toLowerCase()));
-
-                if (gameState.selectedSquare) {
-                    const [selectedRow, selectedCol] = gameState.selectedSquare;
-                    
-                    if (isLegalMove(selectedRow, selectedCol, row, col)) {
-                        makeMove(selectedRow, selectedCol, row, col);
-                        gameState.selectedSquare = null;
-                    } else if (isCurrentPlayerPiece) {
-                        gameState.selectedSquare = [row, col];
-                    } else {
-                        gameState.selectedSquare = null;
-                    }
+                if (isLegalMove(selectedRow, selectedCol, row, col)) {
+                    makeMove(selectedRow, selectedCol, row, col);
+                    gameState.selectedSquare = null;
                 } else if (isCurrentPlayerPiece) {
                     gameState.selectedSquare = [row, col];
+                } else {
+                    gameState.selectedSquare = null;
                 }
-
-                renderBoard();
-                highlightLegalMoves();
+            } else if (isCurrentPlayerPiece) {
+                gameState.selectedSquare = [row, col];
             }
+
+            renderBoard();
+            highlightLegalMoves();
+        }
 
     function highlightLegalMoves() {
         if (!gameState.selectedSquare) return;
@@ -2495,9 +2537,21 @@
 
     function getMoveNotation(fromRow, fromCol, toRow, toCol, piece, captured) {
         const files = 'abcdefgh';
-        const pieceSymbol = piece.toLowerCase() === 'p' ? '' : piece.toUpperCase();
+        const ranks = '87654321'; // Ranks from top to bottom
+        
+        // Get piece type symbol (empty for pawns)
+        let pieceSymbol = '';
+        const pieceType = piece.toLowerCase();
+        if (pieceType !== 'p') {
+            const symbolMap = { 'k': 'K', 'q': 'Q', 'r': 'R', 'b': 'B', 'n': 'N' };
+            pieceSymbol = symbolMap[pieceType] || '';
+        }
+        
         const captureSymbol = captured ? 'x' : '';
-        return `${pieceSymbol}${files[fromCol]}${8-fromRow}${captureSymbol}${files[toCol]}${8-toRow}`;
+        const fromSquare = files[fromCol] + ranks[fromRow];
+        const toSquare = files[toCol] + ranks[toRow];
+        
+        return `${pieceSymbol}${fromSquare}${captureSymbol}${toSquare}`;
     }
 
     function isSquareUnderAttack(row, col, color, board = gameState.board) {
@@ -2608,7 +2662,9 @@
         pieces.forEach(piece => {
             const div = document.createElement('div');
             div.className = 'promotion-piece';
-            div.textContent = PIECES[color][piece];
+            // FIX: Use PIECE_SETS instead of PIECES
+            const pieceSet = PIECE_SETS[gameSettings.theme] || PIECE_SETS.classic;
+            div.textContent = pieceSet[color][piece];
             div.onclick = () => promotePawn(row, col, piece);
             piecesContainer.appendChild(div);
         });
@@ -2913,6 +2969,39 @@
         // Show review modal again
         showGameReview();
     }
+
+    // Initialize hamburger visibility management
+    (function() {
+        function updateHamburgerVisibility() {
+            const hamburger = document.querySelector('.hamburger-menu');
+            const gameActive = document.getElementById('game-container').classList.contains('active');
+            
+            if (hamburger) {
+                hamburger.style.display = gameActive ? 'block' : 'none';
+            }
+        }
+
+        // Wrap showPage
+        const originalShowPage = window.showPage;
+        if (originalShowPage) {
+            window.showPage = function(pageId) {
+                originalShowPage(pageId);
+                updateHamburgerVisibility();
+            };
+        }
+
+        // Wrap startGame
+        const originalStartGame = window.startGame;
+        if (originalStartGame) {
+            window.startGame = function() {
+                originalStartGame();
+                setTimeout(updateHamburgerVisibility, 100);
+            };
+        }
+
+        // Initial check
+        updateHamburgerVisibility();
+    })();
 </script>
 </body>
 </html>
