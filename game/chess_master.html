@@ -2580,46 +2580,21 @@
 
     function getMoveNotation(fromRow, fromCol, toRow, toCol, piece, captured) {
         const files = 'abcdefgh';
-        const ranks = '87654321';
-
+        const ranks = '87654321'; // Ranks from top to bottom
+        
+        // Get piece type symbol (empty for pawns)
+        let pieceSymbol = '';
         const pieceType = piece.toLowerCase();
-        const isPawn = pieceType === 'p';
-
-        const fromFile = files[fromCol];
+        if (pieceType !== 'p') {
+            const symbolMap = { 'k': 'K', 'q': 'Q', 'r': 'R', 'b': 'B', 'n': 'N' };
+            pieceSymbol = symbolMap[pieceType] || '';
+        }
+        
+        const captureSymbol = captured ? 'x' : '';
+        const fromSquare = files[fromCol] + ranks[fromRow];
         const toSquare = files[toCol] + ranks[toRow];
-
-        // Castling
-        if (pieceType === 'k' && Math.abs(toCol - fromCol) === 2) {
-            return toCol === 6 ? 'O-O' : 'O-O-O';
-        }
-
-        let notation = '';
-
-        // Piece symbol
-        if (!isPawn) {
-            const symbolMap = { k: 'K', q: 'Q', r: 'R', b: 'B', n: 'N' };
-            notation += symbolMap[pieceType];
-        }
-
-        // Capture
-        if (captured) {
-            if (isPawn) notation += fromFile;
-            notation += 'x';
-        }
-
-        notation += toSquare;
-
-        // Promotion
-        if (isPawn && (toRow === 0 || toRow === 7)) {
-            notation += '=Q'; // quân phong cấp (tạm cố định)
-        }
-
-        // Check / Checkmate
-        if (isInCheck()) {
-            notation += isCheckmate() ? '#' : '+';
-        }
-
-        return notation;
+        
+        return `${pieceSymbol}${fromSquare}${captureSymbol}${toSquare}`;
     }
 
     function isSquareUnderAttack(row, col, color, board = gameState.board) {
@@ -3329,21 +3304,10 @@
         const moveList = document.getElementById('move-list');
         moveList.innerHTML = '';
 
-        let moveNumber = 1;
-
         gameState.moveHistory.forEach((move, index) => {
             const div = document.createElement('div');
             div.className = 'move-item';
-
-            if (index % 2 === 0) {
-                // White move
-                div.innerHTML = `<span class="move-number">${moveNumber}.</span> <span>${move.notation}</span>`;
-            } else {
-                // Black move
-                div.innerHTML = `<span class="move-black">... ${move.notation}</span>`;
-                moveNumber++;
-            }
-
+            div.innerHTML = `<span>${Math.floor(index/2)+1}.</span><span>${move.notation}</span>`;
             moveList.appendChild(div);
         });
 
