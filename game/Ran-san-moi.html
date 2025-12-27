@@ -1,14 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Modern Snake Game - Advanced Edition</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -18,33 +20,82 @@
             align-items: center;
             min-height: 100vh;
             transition: background-color 0.3s;
+            overflow: hidden;
+            position: relative;
+            padding: 10px;
+        }
+
+        .bottom-snake-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bottom-snake {
+            position: absolute;
+            display: flex;
+            flex-direction: row;
+            gap: 2px;
+            animation: slideSnake 15s linear infinite;
+        }
+
+        .bottom-snake-segment {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideSnake {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100vw); }
         }
 
         .game-container {
             display: flex;
             gap: 20px;
             align-items: flex-start;
-        }
-
-        .game-wrapper {
+            z-index: 1;
             position: relative;
+            width: 100%;
+            max-width: 1400px;
+            justify-content: center;
         }
 
-        #gameCanvas {
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            display: block;
+        @media (max-width: 1024px) {
+            .game-container {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
         }
 
-        .status-panel {
+        .status-panel, .controls-panel {
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
             padding: 20px;
             border-radius: 8px;
-            min-width: 200px;
             color: white;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 1025px) {
+            .status-panel, .controls-panel {
+                width: 220px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .status-panel, .controls-panel {
+                width: 100%;
+                max-width: 600px;
+            }
         }
 
         .status-panel h3 {
@@ -62,51 +113,77 @@
             font-size: 14px;
         }
 
-        .stat-label {
-            color: rgba(255, 255, 255, 0.7);
+        .game-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 1;
+            width: 100%;
+            max-width: min(90vw, 90vh, 600px);
         }
 
-        .stat-value {
-            font-weight: bold;
-            color: white;
+        #gameCanvas {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1;
         }
 
-        .combo-indicator {
-            color: #fbbf24;
-            font-size: 12px;
-            animation: pulse 0.5s infinite;
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: grid;
+                grid-template-columns: repeat(3, 60px);
+                grid-template-rows: repeat(3, 60px);
+                gap: 5px;
+            }
         }
 
-        .controls-panel {
-            background: rgba(0, 0, 0, 0.8);
+        @media (max-width: 400px) {
+            .mobile-controls {
+                grid-template-columns: repeat(3, 50px);
+                grid-template-rows: repeat(3, 50px);
+                bottom: 50px;
+            }
+        }
+
+        .mobile-btn {
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
             color: white;
-            font-size: 12px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
         }
 
-        .controls-panel h4 {
-            margin-bottom: 10px;
-            color: #60a5fa;
+        .mobile-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
         }
 
-        .controls-panel p {
-            margin: 5px 0;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .controls-panel kbd {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: bold;
-        }
+        .mobile-btn-up { grid-column: 2; grid-row: 1; }
+        .mobile-btn-left { grid-column: 1; grid-row: 2; }
+        .mobile-btn-down { grid-column: 2; grid-row: 3; }
+        .mobile-btn-right { grid-column: 3; grid-row: 2; }
+        .mobile-btn-pause { grid-column: 2; grid-row: 2; font-size: 20px; }
 
         .overlay {
             position: absolute;
@@ -131,36 +208,46 @@
         .overlay-content {
             text-align: center;
             color: white;
-            padding: 40px;
+            padding: 40px 20px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 600px) {
+            .overlay-content {
+                padding: 20px 15px;
+            }
         }
 
         .overlay-content h1 {
-            font-size: 64px;
+            font-size: clamp(36px, 8vw, 64px);
             margin-bottom: 10px;
             animation: pulse 2s infinite;
         }
 
         .overlay-content h2 {
-            font-size: 48px;
+            font-size: clamp(28px, 6vw, 48px);
             margin-bottom: 20px;
         }
 
         .overlay-content p {
-            font-size: 14px;
+            font-size: clamp(12px, 3vw, 14px);
             color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .button-group {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             margin-top: 20px;
+            align-items: stretch;
         }
 
         .btn {
-            padding: 15px 40px;
-            font-size: 18px;
+            padding: clamp(10px, 2vw, 15px) clamp(25px, 5vw, 40px);
+            font-size: clamp(14px, 3vw, 18px);
             font-weight: bold;
             border: none;
             border-radius: 8px;
@@ -170,10 +257,15 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            white-space: nowrap;
         }
 
         .btn:hover {
             transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
         }
 
         .btn-primary {
@@ -205,39 +297,53 @@
             background: #4b5563;
         }
 
+        .btn-settings {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-settings:hover {
+            background: #2563eb;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
         .map-selector {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             margin: 20px 0;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .map-card {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            padding: 30px;
+            padding: clamp(15px, 4vw, 30px);
             border-radius: 12px;
-            min-width: 300px;
+            min-width: clamp(200px, 50vw, 300px);
+            flex-shrink: 0;
         }
 
         .map-card h3 {
-            font-size: 24px;
+            font-size: clamp(18px, 4vw, 24px);
             margin-bottom: 10px;
         }
 
         .map-card p {
-            font-size: 14px;
+            font-size: clamp(12px, 3vw, 14px);
             margin: 5px 0;
         }
 
         .arrow-btn {
             background: rgba(255, 255, 255, 0.1);
             border: none;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             cursor: pointer;
             color: white;
-            font-size: 24px;
+            font-size: 20px;
             transition: all 0.3s;
+            flex-shrink: 0;
         }
 
         .arrow-btn:hover:not(:disabled) {
@@ -251,15 +357,16 @@
 
         .skin-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
             margin: 20px 0;
+            max-width: 600px;
         }
 
         .skin-card {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
@@ -289,15 +396,49 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
+        .settings-section {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .settings-section h4 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .language-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: clamp(12px, 3vw, 14px);
+        }
+
+        .language-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .language-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         .warning-notification {
             position: absolute;
             top: 25%;
             left: 50%;
             transform: translate(-50%, -50%);
-            padding: 15px 30px;
+            padding: 12px 25px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 20px;
+            font-size: clamp(14px, 3vw, 20px);
             color: white;
             display: flex;
             align-items: center;
@@ -318,17 +459,9 @@
             }
         }
 
-        .warning-collision {
-            background: #dc2626;
-        }
-
-        .warning-wall {
-            background: #f97316;
-        }
-
-        .warning-teleport {
-            background: #3b82f6;
-        }
+        .warning-collision { background: #dc2626; }
+        .warning-wall { background: #f97316; }
+        .warning-teleport { background: #3b82f6; }
 
         .start-notification {
             position: absolute;
@@ -336,22 +469,28 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.9);
-            padding: 30px 50px;
+            padding: clamp(15px, 4vw, 30px) clamp(25px, 6vw, 50px);
             border-radius: 12px;
             text-align: center;
             z-index: 5;
             animation: pulse 2s infinite;
+            max-width: 90%;
         }
 
         .start-notification h3 {
             color: white;
-            font-size: 24px;
+            font-size: clamp(16px, 4vw, 24px);
             margin-bottom: 10px;
         }
 
         .start-notification p {
             color: rgba(255, 255, 255, 0.7);
-            font-size: 14px;
+            font-size: clamp(11px, 2.5vw, 14px);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
 
         .hidden {
@@ -372,23 +511,16 @@
             justify-content: center;
             border-radius: 8px;
             z-index: 10;
-            pointer-events: auto;
         }
 
         .pause-overlay.hidden {
             display: none;
-            pointer-events: none; /* 🔥 CỰC QUAN TRỌNG */
-        }
-
-        .pause-content {
-            text-align: center;
-            color: white;
+            pointer-events: none;
         }
 
         .pause-icon {
-            font-size: 64px;
+            font-size: clamp(48px, 10vw, 64px);
             margin-bottom: 20px;
-            animation: pulse 1s infinite;
         }
 
         .score-breakdown {
@@ -402,61 +534,65 @@
             display: flex;
             justify-content: space-between;
             margin: 8px 0;
-            font-size: 14px;
+            font-size: clamp(12px, 3vw, 14px);
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            gap: 12px;
             margin-top: 15px;
         }
 
         .stat-box {
             background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             text-align: center;
         }
 
         .stat-box p:first-child {
             color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
+            font-size: clamp(10px, 2.5vw, 12px);
             margin-bottom: 5px;
         }
 
         .stat-box p:last-child {
-            font-size: 24px;
+            font-size: clamp(18px, 4vw, 24px);
             font-weight: bold;
         }
     </style>
 </head>
 <body>
+    <div class="bottom-snake-container">
+        <div class="bottom-snake" id="bottomSnake"></div>
+    </div>
+
     <div class="game-container">
         <div class="status-panel">
-            <h3>Game Stats</h3>
+            <h3 data-translate="gameStats">Game Stats</h3>
             <div class="stat-item">
-                <span class="stat-label">Score:</span>
+                <span class="stat-label" data-translate="score">Score:</span>
                 <span class="stat-value" id="scoreDisplay">0</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Level:</span>
+                <span class="stat-label" data-translate="level">Level:</span>
                 <span class="stat-value" id="levelDisplay">1</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Length:</span>
+                <span class="stat-label" data-translate="length">Length:</span>
                 <span class="stat-value" id="lengthDisplay">1</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Time:</span>
+                <span class="stat-label" data-translate="time">Time:</span>
                 <span class="stat-value" id="timeDisplay">0s</span>
             </div>
             <div class="stat-item" id="comboContainer" style="display: none;">
-                <span class="stat-label">Combo:</span>
+                <span class="stat-label" data-translate="combo">Combo:</span>
                 <span class="stat-value combo-indicator" id="comboDisplay">x0</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Mode:</span>
+                <span class="stat-label" data-translate="mode">Mode:</span>
                 <span class="stat-value" id="modeDisplay">Classic</span>
             </div>
         </div>
@@ -465,8 +601,8 @@
             <canvas id="gameCanvas" width="400" height="400"></canvas>
 
             <div id="startNotification" class="start-notification hidden">
-                <h3>Press Any Arrow Key to Start</h3>
-                <p>The snake will move when you make your first move</p>
+                <h3 data-translate="pressArrowStart">Press Any Arrow Key to Start</h3>
+                <p data-translate="snakeMoveInfo">The snake will move when you make your first move</p>
             </div>
 
             <div id="warningNotification" class="warning-notification hidden"></div>
@@ -474,30 +610,51 @@
             <div id="pauseOverlay" class="pause-overlay hidden">
                 <div class="pause-content">
                     <div class="pause-icon">⏸</div>
-                    <h2>Paused</h2>
-                    <p style="margin-top: 10px; color: rgba(255,255,255,0.7);">Press P or ESC to resume</p>
-                    <button class="btn btn-primary" onclick="game.togglePause()" style="margin-top: 20px;">Resume</button>
+                    <h2 data-translate="paused">Paused</h2>
+                    <p style="margin-top: 10px; color: rgba(255,255,255,0.7);" data-translate="pressToResume">Press P or ESC to resume</p>
+                    <button class="btn btn-primary" onclick="game.togglePause()" data-translate="resume">Resume</button>
                 </div>
             </div>
 
             <div id="introScreen" class="overlay">
                 <div class="overlay-content">
                     <h1>SNAKE</h1>
-                    <p>Modern Edition - Advanced Features</p>
+                    <p data-translate="modernEdition">Modern Edition - Advanced Features</p>
                     <div class="button-group">
                         <button class="btn btn-primary" onclick="game.showMapSelect()">
-                            ▶ Play
+                            ▶ <span data-translate="play">Play</span>
                         </button>
                         <button class="btn btn-secondary" onclick="game.showSkinSelect()">
-                            🎨 Skins
+                            🎨 <span data-translate="skins">Skins</span>
+                        </button>
+                        <button class="btn btn-settings" onclick="game.showSettings()">
+                            ⚙️ <span data-translate="settings">Settings</span>
                         </button>
                     </div>
                 </div>
             </div>
 
+            <div id="settingsScreen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h2 data-translate="settings">Settings</h2>
+                    <div class="settings-section">
+                        <h4 data-translate="language">Language</h4>
+                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button class="language-btn active" onclick="game.setLanguage('en')" id="langBtnEn">
+                                🇬🇧 English
+                            </button>
+                            <button class="language-btn" onclick="game.setLanguage('vi')" id="langBtnVi">
+                                🇻🇳 Tiếng Việt
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-gray" onclick="game.showIntro()" style="margin-top: 20px;" data-translate="back">Back to Menu</button>
+                </div>
+            </div>
+
             <div id="mapScreen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h2>Select Map</h2>
+                    <h2 data-translate="selectMap">Select Map</h2>
                     <div class="map-selector">
                         <button class="arrow-btn" onclick="game.prevMap()">◀</button>
                         <div class="map-card">
@@ -508,85 +665,141 @@
                         <button class="arrow-btn" onclick="game.nextMap()">▶</button>
                     </div>
                     <div class="button-group">
-                        <button class="btn btn-primary" onclick="game.startGame()">Start Game</button>
-                        <button class="btn btn-gray" onclick="game.showIntro()">Back</button>
+                        <button class="btn btn-primary" onclick="game.startGame()" data-translate="startGame">Start Game</button>
+                        <button class="btn btn-gray" onclick="game.showIntro()" data-translate="back">Back</button>
                     </div>
                 </div>
             </div>
 
             <div id="skinScreen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h2>Customize Skins</h2>
-                    <p>Each skin has unique visual effects</p>
+                    <h2 data-translate="customizeSkins">Customize Skins</h2>
+                    <p data-translate="skinEffects">Each skin has unique visual effects</p>
                     <div class="skin-grid" id="skinGrid"></div>
-                    <button class="btn btn-gray" onclick="game.showIntro()" style="margin-top: 20px;">Back to Menu</button>
+                    <button class="btn btn-gray" onclick="game.showIntro()" style="margin-top: 20px;" data-translate="backToMenu">Back to Menu</button>
                 </div>
             </div>
 
             <div id="gameOverScreen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h2 style="color: #ef4444;">Game Over!</h2>
+                    <h2 style="color: #ef4444;" data-translate="gameOver">Game Over!</h2>
                     <div class="score-breakdown">
-                        <p style="font-size: 48px; color: #fbbf24; margin-bottom: 10px;" id="finalScore">0</p>
-                        <p style="font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 15px;">Final Score</p>
+                        <p style="font-size: clamp(36px, 8vw, 48px); color: #fbbf24; margin-bottom: 10px;" id="finalScore">0</p>
+                        <p style="font-size: clamp(12px, 3vw, 14px); color: rgba(255,255,255,0.7); margin-bottom: 15px;" data-translate="finalScore">Final Score</p>
                         <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;">
                             <div class="score-breakdown-item">
-                                <span style="color: rgba(255,255,255,0.7);">Base Score:</span>
+                                <span style="color: rgba(255,255,255,0.7);" data-translate="baseScore">Base Score:</span>
                                 <span id="baseScore">0</span>
                             </div>
                             <div class="score-breakdown-item">
-                                <span style="color: rgba(255,255,255,0.7);">Combo Bonus:</span>
+                                <span style="color: rgba(255,255,255,0.7);" data-translate="comboBonus">Combo Bonus:</span>
                                 <span style="color: #fbbf24;" id="comboScore">0</span>
                             </div>
                             <div class="score-breakdown-item">
-                                <span style="color: rgba(255,255,255,0.7);">Speed Bonus:</span>
+                                <span style="color: rgba(255,255,255,0.7);" data-translate="speedBonus">Speed Bonus:</span>
                                 <span style="color: #4ade80;" id="timeScore">0</span>
                             </div>
                         </div>
                     </div>
                     <div class="stats-grid">
                         <div class="stat-box">
-                            <p>Level</p>
+                            <p data-translate="level">Level</p>
                             <p id="finalLevel">1</p>
                         </div>
                         <div class="stat-box">
-                            <p>Length</p>
+                            <p data-translate="length">Length</p>
                             <p id="finalLength">1</p>
                         </div>
                         <div class="stat-box">
-                            <p>Time</p>
+                            <p data-translate="time">Time</p>
                             <p id="finalTime">0s</p>
                         </div>
                         <div class="stat-box">
-                            <p>Max Combo</p>
+                            <p data-translate="maxCombo">Max Combo</p>
                             <p id="finalCombo">x0</p>
                         </div>
                     </div>
                     <div class="button-group">
-                        <button class="btn btn-primary" onclick="game.restartGame()">🔄 Restart Game</button>
-                        <button class="btn btn-gray" onclick="game.showIntro()">🏠 Main Menu</button>
+                        <button class="btn btn-primary" onclick="game.restartGame()">🔄 <span data-translate="restartGame">Restart Game</span></button>
+                        <button class="btn btn-gray" onclick="game.showIntro()">🏠 <span data-translate="mainMenu">Main Menu</span></button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="controls-panel">
-            <h4>Controls</h4>
-            <p><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> Move</p>
-            <p><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Move</p>
-            <p><kbd>P</kbd> or <kbd>ESC</kbd> Pause</p>
+            <h4 data-translate="controls">Controls</h4>
+            <p><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> <span data-translate="move">Move</span></p>
+            <p><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <span data-translate="move">Move</span></p>
+            <p><kbd>P</kbd> or <kbd>ESC</kbd> <span data-translate="pause">Pause</span></p>
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
-                <h4 style="margin-bottom: 10px;">Features</h4>
-                <p style="font-size: 11px;">• Warning System</p>
-                <p style="font-size: 11px;">• Combo Scoring</p>
-                <p style="font-size: 11px;">• Speed Bonus</p>
-                <p style="font-size: 11px;">• Visual Effects</p>
-                <p style="font-size: 11px;">• Auto-pause</p>
+                <h4 style="margin-bottom: 10px;" data-translate="features">Features</h4>
+                <p style="font-size: 11px;" data-translate="warningSystem">• Warning System</p>
+                <p style="font-size: 11px;" data-translate="comboScoring">• Combo Scoring</p>
+                <p style="font-size: 11px;" data-translate="speedBonus">• Speed Bonus</p>
+                <p style="font-size: 11px;" data-translate="visualEffects">• Visual Effects</p>
+                <p style="font-size: 11px;" data-translate="autoPause">• Auto-pause</p>
             </div>
         </div>
     </div>
 
+    <div class="mobile-controls">
+        <div class="mobile-btn mobile-btn-up" ontouchstart="game.mobileControl('up')">↑</div>
+        <div class="mobile-btn mobile-btn-left" ontouchstart="game.mobileControl('left')">←</div>
+        <div class="mobile-btn mobile-btn-pause" ontouchstart="game.togglePause()">⏸</div>
+        <div class="mobile-btn mobile-btn-right" ontouchstart="game.mobileControl('right')">→</div>
+        <div class="mobile-btn mobile-btn-down" ontouchstart="game.mobileControl('down')">↓</div>
+    </div>
+
     <script>
+        var TRANSLATIONS = {
+            en: {
+                gameStats: 'Game Stats', score: 'Score:', level: 'Level:', length: 'Length:', time: 'Time:',
+                combo: 'Combo:', mode: 'Mode:', pressArrowStart: 'Press Any Arrow Key to Start',
+                snakeMoveInfo: 'The snake will move when you make your first move', paused: 'Paused',
+                pressToResume: 'Press P or ESC to resume', resume: 'Resume',
+                modernEdition: 'Modern Edition - Advanced Features', play: 'Play', skins: 'Skins',
+                settings: 'Settings', language: 'Language', back: 'Back', selectMap: 'Select Map',
+                startGame: 'Start Game', customizeSkins: 'Customize Skins',
+                skinEffects: 'Each skin has unique visual effects', backToMenu: 'Back to Menu',
+                gameOver: 'Game Over!', finalScore: 'Final Score', baseScore: 'Base Score:',
+                comboBonus: 'Combo Bonus:', speedBonus: 'Speed Bonus:', maxCombo: 'Max Combo',
+                restartGame: 'Restart Game', mainMenu: 'Main Menu', controls: 'Controls',
+                move: 'Move', pause: 'Pause', features: 'Features', warningSystem: '• Warning System',
+                comboScoring: '• Combo Scoring', visualEffects: '• Visual Effects',
+                autoPause: '• Auto-pause', collisionRisk: '⚠ Collision Risk!',
+                wallAhead: '⚠ Wall Ahead!', obstacleAhead: '⚠ Obstacle Ahead!',
+                teleporting: '⇄ Teleporting...', classicMode: 'Classic Mode',
+                classicDesc: 'Hit walls = Game Over', mazeMode: 'Maze Mode',
+                mazeDesc: 'Navigate through obstacles', infiniteMode: 'Infinite Mode',
+                infiniteDesc: 'Wrap around walls'
+            },
+            vi: {
+                gameStats: 'Thống Kê Trò Chơi', score: 'Điểm:', level: 'Cấp độ:', length: 'Độ dài:',
+                time: 'Thời gian:', combo: 'Combo:', mode: 'Chế độ:',
+                pressArrowStart: 'Nhấn Phím Mũi Tên Để Bắt Đầu',
+                snakeMoveInfo: 'Rắn sẽ di chuyển khi bạn thực hiện nước đi đầu tiên',
+                paused: 'Đã Tạm Dừng', pressToResume: 'Nhấn P hoặc ESC để tiếp tục',
+                resume: 'Tiếp Tục', modernEdition: 'Phiên Bản Hiện Đại - Tính Năng Nâng Cao',
+                play: 'Chơi', skins: 'Giao Diện', settings: 'Cài Đặt', language: 'Ngôn Ngữ',
+                back: 'Quay Lại', selectMap: 'Chọn Bản Đồ', startGame: 'Bắt Đầu Trò Chơi',
+                customizeSkins: 'Tùy Chỉnh Giao Diện',
+                skinEffects: 'Mỗi giao diện có hiệu ứng hình ảnh độc đáo',
+                backToMenu: 'Về Menu Chính', gameOver: 'Trò Chơi Kết Thúc!',
+                finalScore: 'Điểm Cuối Cùng', baseScore: 'Điểm Cơ Bản:', comboBonus: 'Điểm Combo:',
+                speedBonus: 'Điểm Tốc Độ:', maxCombo: 'Combo Tối Đa', restartGame: 'Chơi Lại',
+                mainMenu: 'Menu Chính', controls: 'Điều Khiển', move: 'Di Chuyển',
+                pause: 'Tạm Dừng', features: 'Tính Năng', warningSystem: '• Hệ Thống Cảnh Báo',
+                comboScoring: '• Điểm Combo', visualEffects: '• Hiệu Ứng Hình Ảnh',
+                autoPause: '• Tự Động Tạm Dừng', collisionRisk: '⚠ Nguy Cơ Va Chạm!',
+                wallAhead: '⚠ Có Tường Phía Trước!', obstacleAhead: '⚠ Có Chướng Ngại Vật!',
+                teleporting: '⇄ Đang Dịch Chuyển...', classicMode: 'Chế Độ Cổ Điển',
+                classicDesc: 'Chạm tường = Thua cuộc', mazeMode: 'Chế Độ Mê Cung',
+                mazeDesc: 'Di chuyển qua chướng ngại vật', infiniteMode: 'Chế Độ Vô Hạn',
+                infiniteDesc: 'Xuyên qua tường'
+            }
+        };
+
         var GRID_SIZE = 20;
         var CELL_SIZE = 20;
         var INITIAL_SPEED = 150;
@@ -638,9 +851,9 @@
         };
 
         var MAPS = [
-            { id: 'classic', name: 'Classic Mode', description: 'Hit walls = Game Over', effect: 'pulse' },
-            { id: 'maze', name: 'Maze Mode', description: 'Navigate through obstacles', effect: 'glow' },
-            { id: 'infinite', name: 'Infinite Mode', description: 'Wrap around walls', effect: 'distort' }
+            { id: 'classic', name: 'classicMode', description: 'classicDesc', effect: 'pulse' },
+            { id: 'maze', name: 'mazeMode', description: 'mazeDesc', effect: 'glow' },
+            { id: 'infinite', name: 'infiniteMode', description: 'infiniteDesc', effect: 'distort' }
         ];
 
         function SnakeGame() {
@@ -648,6 +861,7 @@
             this.ctx = this.canvas.getContext('2d');
             this.selectedMap = 0;
             this.selectedSkin = 'classic';
+            this.currentLanguage = 'en';
             this.gameState = 'intro';
             this.snake = [{ x: 10, y: 10 }];
             this.direction = { x: 0, y: 0 };
@@ -667,7 +881,7 @@
             this.lastAppleTime = Date.now();
             this.gameLoop = null;
             this.timeInterval = null;
-            this.introSnake = [{ x: 5, y: 10 }, { x: 4, y: 10 }, { x: 3, y: 10 }];
+            this.introSnake = [{ x: 5, y: 10 }, { x: 6, y: 10 }, { x: 7, y: 10 }];
             this.introDirection = { x: 1, y: 0 };
             
             this.init();
@@ -679,6 +893,86 @@
             this.updateMapDisplay();
             this.startIntroAnimation();
             this.updateUI();
+            this.initBottomSnake();
+            this.updateBackgroundColor();
+        };
+
+        SnakeGame.prototype.initBottomSnake = function() {
+            var container = document.getElementById('bottomSnake');
+            var skin = SKINS[this.selectedSkin];
+            container.innerHTML = '';
+            
+            for (var i = 0; i < 10; i++) {
+                var segment = document.createElement('div');
+                segment.className = 'bottom-snake-segment';
+                segment.style.backgroundColor = i === 0 ? skin.snake.head : skin.snake.body;
+                container.appendChild(segment);
+            }
+        };
+
+        SnakeGame.prototype.updateBottomSnake = function() {
+            var container = document.getElementById('bottomSnake');
+            var skin = SKINS[this.selectedSkin];
+            var segments = container.children;
+            
+            for (var i = 0; i < segments.length; i++) {
+                segments[i].style.backgroundColor = i === 0 ? skin.snake.head : skin.snake.body;
+            }
+        };
+
+        SnakeGame.prototype.updateBackgroundColor = function() {
+            document.body.style.backgroundColor = SKINS[this.selectedSkin].bg;
+        };
+
+        SnakeGame.prototype.setLanguage = function(lang) {
+            this.currentLanguage = lang;
+            
+            document.getElementById('langBtnEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langBtnVi').classList.toggle('active', lang === 'vi');
+            
+            var elements = document.querySelectorAll('[data-translate]');
+            for (var i = 0; i < elements.length; i++) {
+                var key = elements[i].getAttribute('data-translate');
+                if (TRANSLATIONS[lang][key]) {
+                    elements[i].textContent = TRANSLATIONS[lang][key];
+                }
+            }
+            
+            this.updateMapDisplay();
+        };
+
+        SnakeGame.prototype.showSettings = function() {
+            this.gameState = 'settings';
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('settingsScreen').classList.remove('hidden');
+        };
+
+        SnakeGame.prototype.mobileControl = function(direction) {
+            if (this.gameOver || this.paused) return;
+
+            var newDir = null;
+            switch(direction) {
+                case 'up': newDir = { x: 0, y: -1 }; break;
+                case 'down': newDir = { x: 0, y: 1 }; break;
+                case 'left': newDir = { x: -1, y: 0 }; break;
+                case 'right': newDir = { x: 1, y: 0 }; break;
+            }
+
+            if (!this.gameStarted) {
+                this.gameStarted = true;
+                this.direction = newDir;
+                this.nextDirection = newDir;
+                document.getElementById('startNotification').classList.add('hidden');
+                return;
+            }
+
+            if (this.snake.length >= 2) {
+                if (newDir.x === -this.direction.x && newDir.y === -this.direction.y) {
+                    return;
+                }
+            }
+
+            this.nextDirection = newDir;
         };
 
         SnakeGame.prototype.setupEventListeners = function() {
@@ -687,11 +981,7 @@
                 self.handleKeyPress(e);
             });
             window.addEventListener('blur', function () {
-                if (
-                    self.gameState === 'playing' &&
-                    !self.gameOver &&
-                    !self.paused
-                ) {
+                if (self.gameState === 'playing' && !self.gameOver && !self.paused) {
                     self.autoPause = true;
                     self.pause();
                 }
@@ -704,119 +994,53 @@
             const key = e.key;
             let newDir = null;
 
-            // ===== MAP KEY → DIRECTION =====
             switch (key) {
                 case 'ArrowUp':
                 case 'w':
                 case 'W':
                     newDir = { x: 0, y: -1 };
                     break;
-
                 case 'ArrowDown':
                 case 's':
                 case 'S':
                     newDir = { x: 0, y: 1 };
                     break;
-
                 case 'ArrowLeft':
                 case 'a':
                 case 'A':
                     newDir = { x: -1, y: 0 };
                     break;
-
                 case 'ArrowRight':
                 case 'd':
                 case 'D':
                     newDir = { x: 1, y: 0 };
                     break;
-
                 case 'p':
                 case 'P':
                 case 'Escape':
                     this.togglePause();
                     return;
-
                 default:
                     return;
             }
 
-            // ===== PAUSE STATE CHECK =====
             if (this.paused) return;
 
-            // ===== START GAME ON FIRST MOVE =====
             if (!this.gameStarted) {
                 this.gameStarted = true;
                 this.direction = newDir;
                 this.nextDirection = newDir;
-
-                const startNotice = document.getElementById('startNotification');
-                startNotice.classList.add('hidden');
-
+                document.getElementById('startNotification').classList.add('hidden');
                 return;
             }
 
-            // ===== PREVENT REVERSE DIRECTION =====
             if (this.snake.length >= 2) {
-                if (
-                    newDir.x === -this.direction.x &&
-                    newDir.y === -this.direction.y
-                ) {
-                    return; // 🚫 cấm đi lùi
+                if (newDir.x === -this.direction.x && newDir.y === -this.direction.y) {
+                    return;
                 }
             }
 
-            // ===== APPLY DIRECTION =====
             this.nextDirection = newDir;
-        };
-
-        SnakeGame.prototype.checkWarnings = function() {
-            if (!this.gameStarted) return null;
-
-            var head = this.snake[0];
-            var nextX = head.x + this.nextDirection.x;
-            var nextY = head.y + this.nextDirection.y;
-            var mapMode = MAPS[this.selectedMap].id;
-
-            if (this.snake.length >= 5) {
-                for (var i = 0; i < this.snake.length; i++) {
-                    if (this.snake[i].x === nextX && this.snake[i].y === nextY) {
-                        return { type: 'collision', message: '⚠ Collision Risk!' };
-                    }
-                }
-            }
-
-            if (mapMode === 'classic' || mapMode === 'maze') {
-                if (nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
-                    return { type: 'wall', message: '⚠ Wall Ahead!' };
-                }
-            }
-
-            if (mapMode === 'maze') {
-                for (var i = 0; i < this.obstacles.length; i++) {
-                    if (this.obstacles[i].x === nextX && this.obstacles[i].y === nextY) {
-                        return { type: 'wall', message: '⚠ Obstacle Ahead!' };
-                    }
-                }
-            }
-
-            if (mapMode === 'infinite') {
-                if (nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
-                    return { type: 'teleport', message: '⇄ Teleporting...' };
-                }
-            }
-
-            return null;
-        };
-
-        SnakeGame.prototype.showWarning = function(warning) {
-            var elem = document.getElementById('warningNotification');
-            elem.className = 'warning-notification warning-' + warning.type;
-            elem.textContent = warning.message;
-            elem.classList.remove('hidden');
-
-            setTimeout(function() {
-                elem.classList.add('hidden');
-            }, WARNING_DURATION);
         };
 
         SnakeGame.prototype.startIntroAnimation = function() {
@@ -840,7 +1064,8 @@
                     self.introDirection = dirs[Math.floor(Math.random() * dirs.length)];
                 }
 
-                self.introSnake = [newHead].concat(self.introSnake.slice(0, 5));
+                self.introSnake.unshift(newHead);
+                self.introSnake = self.introSnake.slice(0, 6);
             }, 200);
         };
 
@@ -929,30 +1154,19 @@
         };
 
         SnakeGame.prototype.initGame = function () {
-            this.snake = [
-                { x: 10, y: 10 },
-                { x: 9, y: 10 }
-            ];
-
-            // 🚫 CHƯA có hướng di chuyển
+            this.snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }];
             this.direction = { x: 0, y: 0 };
             this.nextDirection = { x: 0, y: 0 };
-
             this.score = 0;
             this.level = 1;
             this.combo = 0;
             this.speed = INITIAL_SPEED;
-
             this.paused = false;
             this.gameOver = false;
-
-            // 🔥 QUAN TRỌNG
             this.gameStarted = false;
-
             this.totalTime = 0;
             this.lastAppleTime = Date.now();
             this.particles = [];
-
             this.scoreBreakdown = { base: 0, combo: 0, time: 0 };
 
             if (MAPS[this.selectedMap].id === 'maze') {
@@ -962,11 +1176,8 @@
             }
 
             this.generateApple();
-
-            // 👉 HIỆN thông báo bắt đầu
             document.getElementById('startNotification').classList.remove('hidden');
             document.getElementById('pauseOverlay').classList.add('hidden');
-
             this.updateUI();
             this.render();
         };
@@ -1167,11 +1378,11 @@
             }
 
             const startNotice = document.getElementById('startNotification');
-                if (this.gameStarted) {
-                    startNotice.classList.add('hidden');
-                } else {
-                    startNotice.classList.remove('hidden');
-                }
+            if (this.gameStarted) {
+                startNotice.classList.add('hidden');
+            } else {
+                startNotice.classList.remove('hidden');
+            }
         };
 
         SnakeGame.prototype.updateUI = function() {
@@ -1179,7 +1390,9 @@
             document.getElementById('levelDisplay').textContent = this.level;
             document.getElementById('lengthDisplay').textContent = this.snake.length;
             document.getElementById('timeDisplay').textContent = this.totalTime + 's';
-            document.getElementById('modeDisplay').textContent = MAPS[this.selectedMap].name.replace(' Mode', '');
+            
+            var mapName = MAPS[this.selectedMap].name;
+            document.getElementById('modeDisplay').textContent = TRANSLATIONS[this.currentLanguage][mapName].replace(' Mode', '').replace(' Chế Độ', '');
 
             var comboContainer = document.getElementById('comboContainer');
             if (this.combo > 0) {
@@ -1191,7 +1404,6 @@
         };
 
         SnakeGame.prototype.togglePause = function () {
-            // Nếu pause do auto (blur) thì cho phép resume
             if (this.paused) {
                 this.paused = false;
                 this.autoPause = false;
@@ -1204,7 +1416,7 @@
         };
 
         SnakeGame.prototype.pause = function () {
-            if (this.paused) return; // 🚫 chặn gọi lặp
+            if (this.paused) return;
             this.paused = true;
             document.getElementById('pauseOverlay').classList.remove('hidden');
         };
@@ -1231,7 +1443,8 @@
             document.getElementById('mapScreen').classList.add('hidden');
             document.getElementById('skinScreen').classList.add('hidden');
             document.getElementById('gameOverScreen').classList.add('hidden');
-            document.body.style.backgroundColor = SKINS[this.selectedSkin].bg;
+            document.getElementById('settingsScreen').classList.add('hidden');
+            this.updateBackgroundColor();
             this.render();
         };
 
@@ -1253,7 +1466,7 @@
             document.getElementById('mapScreen').classList.add('hidden');
             this.initGame();
             this.startGameLoop();
-            document.body.style.backgroundColor = SKINS[this.selectedSkin].bg;
+            this.updateBackgroundColor();
         };
 
         SnakeGame.prototype.restartGame = function() {
@@ -1278,8 +1491,9 @@
 
         SnakeGame.prototype.updateMapDisplay = function() {
             var map = MAPS[this.selectedMap];
-            document.getElementById('mapName').textContent = map.name;
-            document.getElementById('mapDescription').textContent = map.description;
+            var lang = this.currentLanguage;
+            document.getElementById('mapName').textContent = TRANSLATIONS[lang][map.name];
+            document.getElementById('mapDescription').textContent = TRANSLATIONS[lang][map.description];
             document.getElementById('mapEffect').textContent = 'Effect: ' + map.effect;
         };
 
@@ -1306,7 +1520,8 @@
                 card.onclick = (function(skinKey, skinData) {
                     return function() {
                         self.selectedSkin = skinKey;
-                        document.body.style.backgroundColor = skinData.bg;
+                        self.updateBackgroundColor();
+                        self.updateBottomSnake();
                         self.renderSkinGrid();
                         self.render();
                     };
